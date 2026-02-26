@@ -1,0 +1,3 @@
+// restaurants
+GET /api/v1/restaurants             // ALL restaurants
+GET /api/v1/restaurants/:id         // restaurants be id
