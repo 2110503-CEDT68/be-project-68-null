@@ -8,19 +8,18 @@ const mongoSanitize = require("express-mongo-sanitize"); // Prevent NoSQL inject
 const helmet = require("helmet"); // Set security headers
 const {xss} = require("express-xss-sanitizer"); // Prevent cross-site scripting (XSS) attacks
 const hpp = require("hpp"); // Prevent HTTP parameter pollution attacks
-const swaggerUi = require("swagger-ui-express");
+const swaggerUi = require("swagger-ui-express"); 
 
 // custom modules
 const connectDB = require("./config/db"); // Connect to database
 const restaurants = require("./routes/restaurants"); // Restaurant routes
 const auth = require("./routes/auth"); // Authentication routes
 const reservations = require("./routes/reservations"); // Reservation routes
-const swaggerDocument = require("./swagger.json");
 
+// Connect to database
 connectDB();
 
 const app = express();
-
 app.set('query parser', 'extended');
 
 const limiter = require("express-rate-limit")({
@@ -33,6 +32,10 @@ const limiter = require("express-rate-limit")({
 app.use(express.json());
 app.use(cookies());
 app.use(limiter);
+app.use(mongoSanitize());
+app.use(helmet());
+app.use(xss());
+app.use(hpp());
 
 const restaurants = require("./routes/restaurants");
 const auth = require("./routes/auth");

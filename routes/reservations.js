@@ -8,12 +8,13 @@ const {
 } = require("../controllers/reservation");
 const { protect, authorize } = require("../middleware/auth");
 
-const router = express.Router({ mergeParams: true });
+const router = express.Router();
 
 router
   .route("/")
   .get(protect, getReservations)
   .post(protect, authorize("admin", "user"), addReservation);
+
 router
   .route("/:id")
   .get(protect, getReservation)

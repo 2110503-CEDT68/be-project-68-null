@@ -1,6 +1,5 @@
 const express = require("express");
 const { protect, authorize } = require("../middleware/auth");
-
 const {
   getRestaurants,
   getRestaurant,
@@ -11,12 +10,13 @@ const {
 
 const reservationRouter = require("./reservations");
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true }); // allow child to access parent params
 
 router.use("/:restaurantId/reservations", reservationRouter);
 
-router.route("/")
-  .get(getRestaurants) // Public 
+router
+  .route("/")
+  .get(getRestaurants)
   .post(protect, authorize("admin"), createRestaurant);
 
 router
