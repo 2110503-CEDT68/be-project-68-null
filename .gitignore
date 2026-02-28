@@ -1,5 +1,5 @@
 # ignore congiguration files
-./config.env
+config/config.env
 
 # ignore node modules
 /node_modules
