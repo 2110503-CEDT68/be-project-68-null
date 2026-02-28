@@ -37,9 +37,7 @@ app.use(helmet());
 app.use(xss());
 app.use(hpp());
 
-const restaurants = require("./routes/restaurants");
-const auth = require("./routes/auth");
-const reservations = require("./routes/reservations");
+// ...existing code...
 
 app.use("/api/v1/restaurants", restaurants);
 app.use("/api/v1/auth", auth);
