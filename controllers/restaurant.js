@@ -107,7 +107,6 @@ exports.getRestaurant = async (req, res, next) => {
 // @access  Private
 exports.createRestaurant = async (req, res, next) => {
   try {
-    // ✅ FIX: เพิ่ม try...catch ป้องกัน Server แครช
     const restaurant = await Restaurant.create(req.body);
     res.status(201).json({ success: true, data: restaurant });
   } catch (err) {
