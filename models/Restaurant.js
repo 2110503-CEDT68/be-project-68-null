@@ -35,9 +35,11 @@ const RestaurantSchema = new mongoose.Schema(
           },
           open: {
             type: String, // e.g. '09:00'
+            required: true,
           },
           close: {
             type: String, // e.g. '18:00'
+            required: true,
           },
           closed: {
             type: Boolean,

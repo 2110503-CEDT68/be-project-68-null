@@ -5,6 +5,9 @@ const ReservationSchema = new mongoose.Schema({
     type: Date,
     required: [true, "Please add a reservation date"],
   },
+  endTime: {
+    type: Date,
+  },
   tableCount: {
     type: Number,
     required: [true, "Please specify the number of tables"],

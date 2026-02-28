@@ -1,5 +1,9 @@
 // Import mongoose library for MongoDB connection
+const dns = require("dns");
+dns.setServers(["1.1.1.1"]);
+
 const mongoose = require("mongoose");
+
 
 // Function to connect to MongoDB database
 const connectDB = async () => {
