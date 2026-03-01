@@ -44,7 +44,6 @@ exports.getRestaurants = async (req, res, next) => {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    // ✅ FIX: นับจำนวนข้อมูลเฉพาะที่ตรงกับ Filter เท่านั้น
     const total = await Restaurant.countDocuments(parsedQuery);
 
     query = query.skip(startIndex).limit(limit);
@@ -73,7 +72,7 @@ exports.getRestaurants = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: restaurants.length,
-      pagination, // ✅ FIX: เพิ่ม pagination ส่งกลับไปให้ Frontend
+      pagination,
       data: restaurants,
     });
   } catch (err) {

@@ -117,9 +117,8 @@ exports.getMe = async (req, res, next) => {
 // @access  Private
 exports.logout = async (req, res, next) => {
   try {
-    // เซ็ตคุกกี้ token ให้กลายเป็น 'none' และให้หมดอายุใน 10 วินาที
-    res.cookie("token", "none", {
-      expires: new Date(Date.now() + 10 * 1000),
+    // Clear cookie โดยไม่ส่งค่า และใช้ maxAge: 0 เพื่อให้หมดอายุทันที
+    res.clearCookie("token", {
       httpOnly: true,
     });
 

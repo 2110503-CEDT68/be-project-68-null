@@ -41,14 +41,28 @@ const checkTableAvailability = async (
 // Helper: Check Opening Hours
 const checkOpeningHours = (restaurant, dateString) => {
   const requestedDate = new Date(dateString);
-  const dayOfWeek = requestedDate.toLocaleString("en-US", { weekday: "long" });
-  const hourMinute = requestedDate.toTimeString().slice(0, 5); // 'HH:MM'
 
-  const openingInfo = restaurant.openingHours.find((d) => d.day === dayOfWeek);
+  // 1. บังคับอ่าน "วัน" ตามโซนเวลาประเทศไทยเสมอ
+  const dayOfWeek = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok",
+    weekday: "long",
+  }).format(requestedDate);
+
+  // 2. บังคับอ่าน "เวลา HH:mm" ตามโซนเวลาประเทศไทยเสมอ
+  const hourMinute = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23", // ใช้ h23 เพื่อให้รูปแบบเวลาเป็น 00-23 เสมอ (ป้องกันบั๊ก 24:00)
+  }).format(requestedDate);
+
+  const openingInfo = restaurant.openingHours.find((d) => d.day === dayOfWeek); 
 
   if (!openingInfo || openingInfo.closed) {
     return { isOpen: false, message: `Closed on ${dayOfWeek}` };
   }
+
+  // เปรียบเทียบ string "HH:mm" ได้เลยอย่างปลอดภัย
   if (hourMinute < openingInfo.open || hourMinute >= openingInfo.close) {
     return {
       isOpen: false,

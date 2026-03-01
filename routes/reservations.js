@@ -8,7 +8,7 @@ const {
 } = require("../controllers/reservation");
 const { protect, authorize } = require("../middleware/auth");
 
-const router = express.Router();
+const router = express.Router({mergeParams:true});
 
 router
   .route("/")
