@@ -56,13 +56,13 @@ const checkOpeningHours = (restaurant, dateString) => {
     hourCycle: "h23", // ใช้ h23 เพื่อให้รูปแบบเวลาเป็น 00-23 เสมอ (ป้องกันบั๊ก 24:00)
   }).format(requestedDate);
 
-  const openingInfo = restaurant.openingHours.find((d) => d.day === dayOfWeek); 
+  const openingInfo = restaurant.openingHours.find((d) => d.day === dayOfWeek); // loop opening day
 
   if (!openingInfo || openingInfo.closed) {
     return { isOpen: false, message: `Closed on ${dayOfWeek}` };
   }
 
-  // เปรียบเทียบ string "HH:mm" ได้เลยอย่างปลอดภัย
+  // เปรียบเทียบ string "HH:mm"
   if (hourMinute < openingInfo.open || hourMinute >= openingInfo.close) {
     return {
       isOpen: false,
