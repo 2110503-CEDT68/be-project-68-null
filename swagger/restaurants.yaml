@@ -1,0 +1,269 @@
+components:
+  schemas:
+    Restaurant:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64a1f2c3b4e5d6f7a8b9c0d2"
+        name:
+          type: string
+          example: "The Good Table"
+        address:
+          type: string
+          example: "123 Main St, Bangkok"
+        tel:
+          type: string
+          example: "0212345678"
+        totalTables:
+          type: integer
+          example: 20
+        openingHours:
+          type: array
+          items:
+            type: object
+            properties:
+              day:
+                type: string
+                enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+              open:
+                type: string
+                example: "09:00"
+              close:
+                type: string
+                example: "22:00"
+              closed:
+                type: boolean
+                example: false
+
+paths:
+  /restaurants:
+    get:
+      tags:
+        - Restaurants
+      summary: Get all restaurants (Public)
+      parameters:
+        - in: query
+          name: select
+          schema:
+            type: string
+          description: Comma-separated fields to select (e.g. name,address)
+        - in: query
+          name: sort
+          schema:
+            type: string
+          description: Sort by field (e.g. name or -name for descending)
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: List of restaurants with pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 5
+                  pagination:
+                    type: object
+                    properties:
+                      next:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+                      prev:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Restaurant"
+        "400":
+          description: Bad request
+
+    post:
+      tags:
+        - Restaurants
+      summary: Create a new restaurant (Admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, address, tel, totalTables]
+              properties:
+                name:
+                  type: string
+                  example: "The Good Table"
+                address:
+                  type: string
+                  example: "123 Main St, Bangkok"
+                tel:
+                  type: string
+                  example: "0212345678"
+                totalTables:
+                  type: integer
+                  example: 20
+                openingHours:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      day:
+                        type: string
+                        enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+                      open:
+                        type: string
+                        example: "09:00"
+                      close:
+                        type: string
+                        example: "22:00"
+                      closed:
+                        type: boolean
+                        example: false
+      responses:
+        "201":
+          description: Restaurant created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Restaurant"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden — Admin only
+
+  /restaurants/{id}:
+    get:
+      tags:
+        - Restaurants
+      summary: Get single restaurant (Public)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Restaurant data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Restaurant"
+        "404":
+          description: Restaurant not found
+
+    put:
+      tags:
+        - Restaurants
+      summary: Update restaurant (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                address:
+                  type: string
+                tel:
+                  type: string
+                totalTables:
+                  type: integer
+                openingHours:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Restaurant updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Restaurant"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden — Admin only
+        "404":
+          description: Restaurant not found
+
+    delete:
+      tags:
+        - Restaurants
+      summary: Delete restaurant and all its reservations (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Restaurant deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden — Admin only
+        "404":
+          description: Restaurant not found

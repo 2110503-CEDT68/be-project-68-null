@@ -1,0 +1,287 @@
+components:
+  schemas:
+    Reservation:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64a1f2c3b4e5d6f7a8b9c0d3"
+        reservationDate:
+          type: string
+          format: date-time
+          example: "2025-06-15T18:00:00.000Z"
+        endTime:
+          type: string
+          format: date-time
+          example: "2025-06-15T20:00:00.000Z"
+          description: Auto-calculated as reservationDate + 2 hours
+        tableCount:
+          type: integer
+          minimum: 1
+          example: 2
+        user:
+          type: string
+          example: "64a1f2c3b4e5d6f7a8b9c0d1"
+        restaurant:
+          oneOf:
+            - type: string
+              example: "64a1f2c3b4e5d6f7a8b9c0d2"
+            - type: object
+              properties:
+                _id:
+                  type: string
+                name:
+                  type: string
+                address:
+                  type: string
+                tel:
+                  type: string
+        createdAt:
+          type: string
+          format: date-time
+
+paths:
+  /restaurants/{restaurantId}/reservations:
+    get:
+      tags:
+        - Reservations
+      summary: Get reservations for a specific restaurant
+      description: Admin sees all, User sees only their own
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: restaurantId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of reservations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Reservation"
+        "401":
+          description: Unauthorized
+        "500":
+          description: Server error
+
+    post:
+      tags:
+        - Reservations
+      summary: Create a new reservation
+      description: |
+        **Rules enforced:**
+        - Max **3 reservations per day** (non-admin users)
+        - Must be within **opening hours**
+        - Table availability checked with **2-hour overlap window**
+        - `endTime` auto-calculated as `reservationDate + 2 hours`
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: restaurantId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reservationDate, tableCount]
+              properties:
+                reservationDate:
+                  type: string
+                  format: date-time
+                  example: "2025-06-15T18:00:00.000Z"
+                tableCount:
+                  type: integer
+                  minimum: 1
+                  example: 2
+      responses:
+        "201":
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Reservation"
+        "400":
+          description: |
+            Possible reasons:
+            - Already has 3 reservations on this date
+            - Restaurant is closed at requested time
+            - Not enough tables available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Restaurant not found
+        "500":
+          description: Server error
+
+  /reservations:
+    get:
+      tags:
+        - Reservations
+      summary: Get all reservations
+      description: Admin sees all in system, User sees only their own
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of reservations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Reservation"
+        "401":
+          description: Unauthorized
+        "500":
+          description: Server error
+
+  /reservations/{id}:
+    get:
+      tags:
+        - Reservations
+      summary: Get single reservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reservation data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Reservation"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Reservation not found
+        "500":
+          description: Server error
+
+    put:
+      tags:
+        - Reservations
+      summary: Update reservation (owner or admin only)
+      description: |
+        Re-validates opening hours and table availability if date or tableCount is changed.
+        `endTime` is auto-recalculated if `reservationDate` is updated.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reservationDate:
+                  type: string
+                  format: date-time
+                  example: "2025-06-20T18:00:00.000Z"
+                tableCount:
+                  type: integer
+                  minimum: 1
+                  example: 3
+      responses:
+        "200":
+          description: Reservation updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Reservation"
+        "400":
+          description: Restaurant closed or not enough tables
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden — not owner or admin
+        "404":
+          description: Reservation not found
+        "500":
+          description: Server error
+
+    delete:
+      tags:
+        - Reservations
+      summary: Delete reservation (owner or admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reservation deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden — not owner or admin
+        "404":
+          description: Reservation not found
+        "500":
+          description: Server error

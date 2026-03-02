@@ -1,7 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const yaml = require("js-yaml");
-const fs = require("fs");
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUI = require("swagger-ui-express");
 
 dotenv.config({ path: "./config/config.env" });
 
@@ -10,7 +10,6 @@ const mongoSanitize = require("express-mongo-sanitize"); // Prevent NoSQL inject
 const helmet = require("helmet"); // Set security headers
 const {xss} = require("express-xss-sanitizer"); // Prevent cross-site scripting (XSS) attacks
 const hpp = require("hpp"); // Prevent HTTP parameter pollution attacks
-const swaggerUi = require("swagger-ui-express"); 
 
 // custom modules
 const connectDB = require("./config/db"); // Connect to database
@@ -41,10 +40,26 @@ app.use(helmet());
 app.use(xss());
 app.use(hpp());
 
-const swaggerDocument = yaml.load(fs.readFileSync("./swagger/swagger.yaml", "utf8"));
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Restaurant Reservation API",
+      version: "1.0.0",
+      description: "REST API for managing restaurant reservations.\n\n**Rules:**\n- User can create at most **3 reservations per day** per restaurant\n- Reservation duration is **2 hours** (overlap check applied)\n- Reservations can only be made during **opening hours**",
+    },
+    servers: [
+      {
+        url: "http://localhost:5000/api/v1",
+      },
+    ],
+  },
+  apis: ["./swagger/*.yaml"],
+};
 
-// ...existing code...
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+
 
 app.use("/api/v1/restaurants", restaurants);
 app.use("/api/v1/auth", auth);
