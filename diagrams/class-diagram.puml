@@ -20,7 +20,7 @@ package "Restaurant Reservation System"{
         -password
         -role
         -createdAt
-    }
+    }j
 
     class "<<Resource>>\nRestaurants" as ResourceRestaurants{
         <<GET>> +getRestaurants():Restaurant
