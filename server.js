@@ -1,5 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const yaml = require("js-yaml");
+const fs = require("fs");
 
 dotenv.config({ path: "./config/config.env" });
 
@@ -29,6 +31,8 @@ const limiter = require("express-rate-limit")({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
+const cors = require('cors');
+app.use(cors());
 app.use(express.json());
 app.use(cookies());
 app.use(limiter);
@@ -36,6 +40,9 @@ app.use(mongoSanitize());
 app.use(helmet());
 app.use(xss());
 app.use(hpp());
+
+const swaggerDocument = yaml.load(fs.readFileSync("./swagger/swagger.yaml", "utf8"));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // ...existing code...
 
