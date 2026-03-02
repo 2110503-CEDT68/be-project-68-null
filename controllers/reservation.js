@@ -252,6 +252,12 @@ exports.updateReservation = async (req, res, next) => {
       const newTableCount = req.body.tableCount || reservation.tableCount;
 
       const restaurant = await Restaurant.findById(reservation.restaurant);
+      if (!restaurant) {
+        return res.status(404).json({
+          success: false,
+          message: "Restaurant for this reservation not found",
+        });
+      }
 
       if (req.body.reservationDate) {
         // Check if new date is in the past (GMT+7)

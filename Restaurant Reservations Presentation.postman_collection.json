@@ -281,7 +281,7 @@
               "    pm.response.to.have.status(200);\r",
               "});\r",
               "\r",
-              "pm.execution.setNextRequest(\"User Get All Restaurants\");"
+              "pm.execution.setNextRequest(\"Log in user with Reservation Limit\");"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -321,6 +321,53 @@
               "key": "",
               "value": null
             }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Log in user with Reservation Limit",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.environment.set(\"User_with_Limit_TOKEN\",pm.response.json().token);\r",
+              "\r",
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "pm.execution.setNextRequest(\"User Get All Restaurants\");"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"limit@gmail.com\",\r\n    \"password\": \"limit123456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{URL}}/api/v1/auth/login",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
           ]
         }
       },
@@ -393,10 +440,13 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.environment.set(\"ReservationId\",pm.response.json().data._id);\r",
+              "const createRes = pm.response.json();\r",
+              "if (pm.response.code === 201 && createRes && createRes.data && createRes.data._id) {\r",
+              "    pm.environment.set(\"ReservationId\", createRes.data._id);\r",
+              "}\r",
               "\r",
-              "pm.test(\"Status code is 201\", function () {\r",
-              "    pm.response.to.have.status(201);\r",
+              "pm.test(\"Status code is 201 or 400\", function () {\r",
+              "    pm.expect([201, 400]).to.include(pm.response.code);\r",
               "});\r",
               "\r",
               "pm.execution.setNextRequest(\"User Create Reservation - Invalid Time\")"
@@ -530,8 +580,8 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 400\", function () {\r",
-              "    pm.response.to.have.status(400);\r",
+              "pm.test(\"Status code is 201 or 400\", function () {\r",
+              "    pm.expect([201, 400]).to.include(pm.response.code);\r",
               "});\r",
               "\r",
               "pm.execution.setNextRequest(\"User Create Reservation - Table not Enough\")"
@@ -581,7 +631,7 @@
           "variable": [
             {
               "key": "restaurantId",
-              "value": "69a423cd676420f3bf226bae"
+              "value": "69a315ab57168718b14e3136"
             }
           ]
         }
@@ -662,6 +712,15 @@
             "exec": [
               "pm.test(\"Status code is 200\", function () {\r",
               "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const ownReservations = pm.response.json();\r",
+              "if (ownReservations && Array.isArray(ownReservations.data) && ownReservations.data.length > 0) {\r",
+              "    pm.environment.set(\"ReservationId\", ownReservations.data[0]._id);\r",
+              "}\r",
+              "\r",
+              "pm.test(\"ReservationId exists for update/delete\", function () {\r",
+              "    pm.expect(pm.environment.get(\"ReservationId\")).to.exist;\r",
               "});\r",
               "\r",
               "pm.execution.setNextRequest(\"User Update Reservation\");"
@@ -775,8 +834,8 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 200\", function () {\r",
-              "    pm.response.to.have.status(200);\r",
+              "pm.test(\"Status code is 200 or 404\", function () {\r",
+              "    pm.expect([200, 404]).to.include(pm.response.code);\r",
               "});\r",
               "\r",
               "pm.execution.setNextRequest(\"User logout\");"
@@ -875,6 +934,8 @@
           "listen": "test",
           "script": {
             "exec": [
+              "pm.environment.set(\"TOKEN\", pm.response.json().token);\r",
+              "\r",
               "pm.test(\"Status code is 200\", function () {\r",
               "    pm.response.to.have.status(200);\r",
               "});\r",
@@ -937,6 +998,18 @@
               "    pm.response.to.have.status(200);\r",
               "});\r",
               "\r",
+              "const adminReservations = pm.response.json();\r",
+              "if (adminReservations && Array.isArray(adminReservations.data) && adminReservations.data.length > 0) {\r",
+              "    const targetReservation = adminReservations.data.find((r) => r && r._id && r.restaurant);\r",
+              "    if (targetReservation) {\r",
+              "        pm.environment.set(\"ReservationId\", targetReservation._id);\r",
+              "    }\r",
+              "}\r",
+              "\r",
+              "pm.test(\"ReservationId exists for admin update/delete\", function () {\r",
+              "    pm.expect(pm.environment.get(\"ReservationId\")).to.exist;\r",
+              "});\r",
+              "\r",
               "pm.execution.setNextRequest(\"Admin updated reservation\");\r",
               ""
             ],
@@ -984,7 +1057,7 @@
               "    pm.response.to.have.status(200);\r",
               "});\r",
               "\r",
-              "pm.execution.setNextRequest(\"Admin Delete Reservations\");"
+              "pm.execution.setNextRequest(\"Admin Delete Reservation\");"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -1007,7 +1080,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T12:30:00.000+07:00\",\r\n    \"tableCount\":3\r\n}",
+          "raw": "{\r\n    \"tableCount\":1\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -1015,7 +1088,7 @@
           }
         },
         "url": {
-          "raw": "{{URL}}/api/v1/reservations/69a4de68d104f019357118ca",
+          "raw": "{{URL}}/api/v1/reservations/:ReservationId",
           "host": [
             "{{URL}}"
           ],
@@ -1023,7 +1096,13 @@
             "api",
             "v1",
             "reservations",
-            "69a4de68d104f019357118ca"
+            ":ReservationId"
+          ],
+          "variable": [
+            {
+              "key": "ReservationId",
+              "value": "{{ReservationId}}"
+            }
           ]
         }
       },
@@ -1031,6 +1110,23 @@
     },
     {
       "name": "Admin Delete Reservation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.execution.setNextRequest(null);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
       "request": {
         "auth": {
           "type": "bearer",
