@@ -16,6 +16,11 @@
             "exec": [
               "pm.environment.set(\"TOKEN\", pm.response.json().token);",
               "",
+              "const registerResponse = pm.response.json();",
+              "if (registerResponse && registerResponse.data && registerResponse.data._id) {",
+              "    pm.environment.set(\"UserId\", registerResponse.data._id);",
+              "}",
+              "",
               "const requestBody = JSON.parse(pm.request.body.raw);",
               "pm.environment.set(\"UserEmail\", requestBody.email);",
               "pm.environment.set(\"UserPassword\",requestBody.password);",
@@ -281,7 +286,7 @@
               "    pm.response.to.have.status(200);\r",
               "});\r",
               "\r",
-              "pm.execution.setNextRequest(\"Log in user with Reservation Limit\");"
+              "pm.execution.setNextRequest(\"User Get All Restaurants\");"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -327,53 +332,6 @@
       "response": []
     },
     {
-      "name": "Log in user with Reservation Limit",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.environment.set(\"User_with_Limit_TOKEN\",pm.response.json().token);\r",
-              "\r",
-              "pm.test(\"Status code is 200\", function () {\r",
-              "    pm.response.to.have.status(200);\r",
-              "});\r",
-              "pm.execution.setNextRequest(\"User Get All Restaurants\");"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n    \"email\": \"limit@gmail.com\",\r\n    \"password\": \"limit123456\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{URL}}/api/v1/auth/login",
-          "host": [
-            "{{URL}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "auth",
-            "login"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
       "name": "User Get All Restaurants",
       "event": [
         {
@@ -383,6 +341,13 @@
               "pm.test(\"Status code is 200\", function () {\r",
               "    pm.response.to.have.status(200);\r",
               "});\r",
+              "\r",
+              "const restaurants = pm.response.json();\r",
+              "if (restaurants && restaurants.data && restaurants.data.length >= 3) {\r",
+              "    pm.environment.set(\"RestaurantId1\", restaurants.data[0]._id);\r",
+              "    pm.environment.set(\"RestaurantId2\", restaurants.data[1]._id);\r",
+              "    pm.environment.set(\"RestaurantId3\", restaurants.data[2]._id);\r",
+              "}\r",
               "\r",
               "pm.execution.setNextRequest(\"User Create Reservation\");\r",
               ""
@@ -445,8 +410,8 @@
               "    pm.environment.set(\"ReservationId\", createRes.data._id);\r",
               "}\r",
               "\r",
-              "pm.test(\"Status code is 201 or 400\", function () {\r",
-              "    pm.expect([201, 400]).to.include(pm.response.code);\r",
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
               "});\r",
               "\r",
               "pm.execution.setNextRequest(\"User Create Reservation - Invalid Time\")"
@@ -479,7 +444,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-23T12:30:00.000+07:00\",\r\n    \"tableCount\": 3\r\n}",
+          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T11:00:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -501,7 +466,7 @@
           "variable": [
             {
               "key": "restaurantId",
-              "value": "69a40631ecf787c684ba41ee"
+              "value": "{{RestaurantId1}}"
             }
           ]
         }
@@ -519,7 +484,7 @@
               "    pm.response.to.have.status(400);\r",
               "});\r",
               "\r",
-              "pm.execution.setNextRequest(\"User Create Reservation -  Reservation Limit\")"
+              "pm.execution.setNextRequest(\"User Create Reservation #2 Same Day\")"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -549,7 +514,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-23T00:30:00.000+07:00\",\r\n    \"tableCount\": 3\r\n}"
+          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T00:30:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}"
         },
         "url": {
           "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
@@ -566,7 +531,7 @@
           "variable": [
             {
               "key": "restaurantId",
-              "value": "69a40631ecf787c684ba41ee"
+              "value": "{{RestaurantId1}}"
             }
           ]
         }
@@ -574,14 +539,144 @@
       "response": []
     },
     {
-      "name": "User Create Reservation -  Reservation Limit",
+      "name": "User Create Reservation #2 - Test Reservation Limit",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 201 or 400\", function () {\r",
-              "    pm.expect([201, 400]).to.include(pm.response.code);\r",
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "\r",
+              "pm.execution.setNextRequest(\"User Create Reservation #3 - Test Reservation Limit\")"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": "JSON Type",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T13:00:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}"
+        },
+        "url": {
+          "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "restaurants",
+            ":restaurantId",
+            "reservations"
+          ],
+          "variable": [
+            {
+              "key": "restaurantId",
+              "value": "{{RestaurantId2}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Create Reservation #3 - Test Reservation Limit",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "\r",
+              "pm.execution.setNextRequest(\"User Create Reservation - Reservation Limit\")"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": "JSON Type",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T16:00:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}"
+        },
+        "url": {
+          "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "restaurants",
+            ":restaurantId",
+            "reservations"
+          ],
+          "variable": [
+            {
+              "key": "restaurantId",
+              "value": "{{RestaurantId1}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Create Reservation - Reservation Limit",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {\r",
+              "    pm.response.to.have.status(400);\r",
               "});\r",
               "\r",
               "pm.execution.setNextRequest(\"User Create Reservation - Table not Enough\")"
@@ -598,7 +693,7 @@
           "bearer": [
             {
               "key": "token",
-              "value": "{{User_with_Limit_TOKEN}}",
+              "value": "{{TOKEN}}",
               "type": "string"
             }
           ]
@@ -614,7 +709,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-23T11:30:00.000+07:00\",\r\n    \"tableCount\": 3\r\n}"
+          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T19:00:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}"
         },
         "url": {
           "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
@@ -631,7 +726,7 @@
           "variable": [
             {
               "key": "restaurantId",
-              "value": "69a315ab57168718b14e3136"
+              "value": "{{RestaurantId1}}"
             }
           ]
         }
@@ -647,6 +742,201 @@
             "exec": [
               "pm.test(\"Status code is 400\", function () {\r",
               "    pm.response.to.have.status(400);\r",
+              "});\r",
+              "\r",
+              "pm.execution.setNextRequest(\"User Get Own Reservations (Cleanup Check)\");"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": "JSON Type",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"reservationDate\":\"2026-03-25T11:30:00.000+07:00\",\r\n    \"tableCount\": 100\r\n}"
+        },
+        "url": {
+          "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "restaurants",
+            ":restaurantId",
+            "reservations"
+          ],
+          "variable": [
+            {
+              "key": "restaurantId",
+              "value": "{{RestaurantId3}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Get Own Reservations (Cleanup Check)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// GET own reservations to check how many extra reservations exist\r",
+              "// Then capture ExtraReservationId2 and ExtraReservationId3 for cleanup\r",
+              "// Set flags HasExtra2 and HasExtra3 to control conditional flow\r",
+              "\r",
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const reservations = pm.response.json();\r",
+              "let hasExtra2 = false;\r",
+              "let hasExtra3 = false;\r",
+              "\r",
+              "if (reservations && Array.isArray(reservations.data) && reservations.data.length > 1) {\r",
+              "    pm.environment.set(\"ExtraReservationId2\", reservations.data[1]._id);\r",
+              "    hasExtra2 = true;\r",
+              "}\r",
+              "if (reservations && Array.isArray(reservations.data) && reservations.data.length > 2) {\r",
+              "    pm.environment.set(\"ExtraReservationId3\", reservations.data[2]._id);\r",
+              "    hasExtra3 = true;\r",
+              "}\r",
+              "\r",
+              "pm.environment.set(\"HasExtra2\", hasExtra2);\r",
+              "pm.environment.set(\"HasExtra3\", hasExtra3);\r",
+              "\r",
+              "if (hasExtra2) {\r",
+              "    pm.execution.setNextRequest(\"User Delete Extra Reservation #2\");\r",
+              "} else {\r",
+              "    pm.execution.setNextRequest(\"User View own Reservations\");\r",
+              "}\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{URL}}/api/v1/reservations",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "reservations"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Delete Extra Reservation #2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const hasExtra3 = pm.environment.get(\"HasExtra3\") === \"true\" || pm.environment.get(\"HasExtra3\") === true;\r",
+              "\r",
+              "if (hasExtra3) {\r",
+              "    pm.execution.setNextRequest(\"User Delete Extra Reservation #3\");\r",
+              "} else {\r",
+              "    pm.execution.setNextRequest(\"User View own Reservations\");\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{URL}}/api/v1/reservations/:ReservationId",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "reservations",
+            ":ReservationId"
+          ],
+          "variable": [
+            {
+              "key": "ReservationId",
+              "value": "{{ExtraReservationId2}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Delete Extra Reservation #3",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
               "});\r",
               "\r",
               "pm.execution.setNextRequest(\"User View own Reservations\");"
@@ -668,35 +958,23 @@
             }
           ]
         },
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "description": "JSON Type",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-23T11:30:00.000+07:00\",\r\n    \"tableCount\": 3\r\n}"
-        },
+        "method": "DELETE",
+        "header": [],
         "url": {
-          "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
+          "raw": "{{URL}}/api/v1/reservations/:ReservationId",
           "host": [
             "{{URL}}"
           ],
           "path": [
             "api",
             "v1",
-            "restaurants",
-            ":restaurantId",
-            "reservations"
+            "reservations",
+            ":ReservationId"
           ],
           "variable": [
             {
-              "key": "restaurantId",
-              "value": "69a4210ebf035e67c90fdac2"
+              "key": "ReservationId",
+              "value": "{{ExtraReservationId3}}"
             }
           ]
         }
@@ -940,7 +1218,7 @@
               "    pm.response.to.have.status(200);\r",
               "});\r",
               "\r",
-              "pm.execution.setNextRequest(\"Admin View All Reservations\");\r",
+              "pm.execution.setNextRequest(\"Admin Create Reservation for Test\");\r",
               ""
             ],
             "type": "text/javascript",
@@ -988,6 +1266,81 @@
       "response": []
     },
     {
+      "name": "Admin Create Reservation for Test",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const createRes = pm.response.json();\r",
+              "if (pm.response.code === 201 && createRes && createRes.data && createRes.data._id) {\r",
+              "    pm.environment.set(\"AdminReservationId\", createRes.data._id);\r",
+              "}\r",
+              "\r",
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "\r",
+              "pm.execution.setNextRequest(\"Admin View All Reservations\");"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": "JSON Type",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"reservationDate\":\"2026-03-26T12:00:00.000+07:00\",\r\n    \"tableCount\": 2\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "restaurants",
+            ":restaurantId",
+            "reservations"
+          ],
+          "variable": [
+            {
+              "key": "restaurantId",
+              "value": "{{RestaurantId1}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Admin View All Reservations",
       "event": [
         {
@@ -999,15 +1352,12 @@
               "});\r",
               "\r",
               "const adminReservations = pm.response.json();\r",
-              "if (adminReservations && Array.isArray(adminReservations.data) && adminReservations.data.length > 0) {\r",
-              "    const targetReservation = adminReservations.data.find((r) => r && r._id && r.restaurant);\r",
-              "    if (targetReservation) {\r",
-              "        pm.environment.set(\"ReservationId\", targetReservation._id);\r",
-              "    }\r",
-              "}\r",
+              "\r",
+              "// AdminReservationId already set by \"Admin Create Reservation for Test\"\r",
+              "// This step is just to view all reservations (Step 10 requirement)\r",
               "\r",
               "pm.test(\"ReservationId exists for admin update/delete\", function () {\r",
-              "    pm.expect(pm.environment.get(\"ReservationId\")).to.exist;\r",
+              "    pm.expect(pm.environment.get(\"AdminReservationId\")).to.exist;\r",
               "});\r",
               "\r",
               "pm.execution.setNextRequest(\"Admin updated reservation\");\r",
@@ -1101,7 +1451,7 @@
           "variable": [
             {
               "key": "ReservationId",
-              "value": "{{ReservationId}}"
+              "value": "{{AdminReservationId}}"
             }
           ]
         }
@@ -1154,7 +1504,7 @@
           "variable": [
             {
               "key": "ReservationId",
-              "value": "{{ReservationId}}"
+              "value": "{{AdminReservationId}}"
             }
           ]
         }
@@ -1201,10 +1551,6 @@
     {
       "key": "UserEmail",
       "value": "Clay.Strosin@gmail.com"
-    },
-    {
-      "key": "User_with_Limit_TOKEN",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTU5MjNmZGViMWVmMDA2YTViZGM1NiIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzcyNDU4NTU5LCJleHAiOjE3NzUwNTA1NTl9.QA8uNJ8EwZKp8lkN5-vqEmU4WH3jATfXJATk4Uww7ko"
     },
     {
       "key": "ReservationId",

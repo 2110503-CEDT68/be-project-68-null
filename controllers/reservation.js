@@ -172,8 +172,18 @@ exports.addReservation = async (req, res, next) => {
     }
 
     // 3. Check 3-reservations-per-day limit
-    const startOfDay = new Date(requestedDate).setUTCHours(0, 0, 0, 0);
-    const endOfDay = new Date(requestedDate).setUTCHours(23, 59, 59, 999);
+    // Use Bangkok timezone for same-day calculation
+    const bangkokDateStr = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Bangkok",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(requestedDate);
+
+    // Parse as UTC midnight to avoid timezone shifts
+    const [year, month, day] = bangkokDateStr.split("-");
+    const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
 
     const sameDateReservations = await Reservation.find({
       user: req.user.id,
