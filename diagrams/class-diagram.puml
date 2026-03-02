@@ -1,0 +1,78 @@
+@startuml
+left to right direction
+package "Restaurant Reservation System"{
+    class "<<Application>>\nVacQService" as VacQService{}
+
+    class "<<Resource>>\nAuth" as ResourceAuth{
+        <<POST>> +register():User
+        <<POST>> +login():User
+    }
+
+    class "<<Resource>>\nUser" as ResourceUser {
+        <<GET>> +getMe(): User
+        <<GET>> +logout(): void
+    }
+
+    class "<<Representation>>\nUser" as RepresentationUser {
+        -name
+        -tel
+        -email
+        -password
+        -role
+        -createdAt
+    }
+
+    class "<<Resource>>\nRestaurants" as ResourceRestaurants{
+        <<GET>> +getRestaurants():Restaurant
+        <<POST>> +createRestaurant():Restaurant
+    }
+
+    class "<<Resource>>\nRestaurant" as ResourceRestaurant {
+        <<GET>> +getRestaurant(): Restaurant
+        <<PUT>> +updateRestaurant(): Restaurant
+        <<DELETE>> +deleteRestaurant(): void
+    }
+
+    class "<<Representation>>\nRestaurant" as RepresentationRestaurant {
+        -name
+        -address
+        -tel
+        -openingHours
+        -totalTables
+    }
+
+    class "<<Resource>>\nReservations" as ResourceReservations{
+        <<GET>> +getReservations():Reservation
+        <<POST>> +createReservation():Reservation
+    }
+
+    class "<<Resource>>\nReservation" as ResourceReservation {
+        <<GET>> +getReservation(): Reservation
+        <<PUT>> +updateReservation(): Reservation
+        <<DELETE>> +deleteReservation(): void
+    }
+
+    class "<<Representation>>\nReservation" as RepresentationReservation {
+        -reservationDate
+        -endTime
+        -tableCount
+        -user
+        -restaurant
+        -createdAt
+    }
+
+}
+
+VacQService ..> ResourceAuth:"/auth\n<<Path>>"
+ResourceAuth ..> ResourceUser: "/{userId}\n<<Path>>"
+ResourceUser ..> RepresentationUser: "<<use>>"
+
+VacQService ..> ResourceRestaurants:"/restaurants\n<<Path>>"
+ResourceRestaurants ..> ResourceRestaurant: "/{restaurantId}\n<<Path>>"
+ResourceRestaurant ..> RepresentationRestaurant: "<<use>>"
+
+VacQService ..> ResourceReservations:"/reservations\n<<Path>>"
+ResourceReservations ..> ResourceReservation: "/{reservationId}\n<<Path>>"
+ResourceReservation ..> RepresentationReservation: "<<use>>"
+
+@enduml
