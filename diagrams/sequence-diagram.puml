@@ -1,0 +1,67 @@
+@startuml
+title Sequence Diagram: Main API Flows
+
+hide footbox
+
+actor Guest as guest
+actor User as user
+actor Admin as admin
+
+participant "<<javaScript>>\n:server" as Server
+participant "<<router>>\n:auth/restaurants/reservations" as Router
+participant "<<controllers>>\n:auth/restaurant/reservation" as Controller
+participant "<<model>>\n:User/Restaurant/Reservation" as Model
+database "<<MongoDB>>\n:database" as Mongo
+
+== Auth Flows (register, login, logout) ==
+guest -> Server: req.post("/api/v1/auth/register")\nreq.post("/api/v1/auth/login")
+Server -> Router: app.use("/auth", authRoutes)
+Router -> Controller: register(req, res) / login(req, res)
+Controller -> Model: create(req.body) / findOne(email)
+Model -> Mongo: insert user / query user
+Mongo --> Model: user document
+Model --> Controller: user
+Controller --> guest: response (201/200 + token)
+
+user -> Controller: req.get("/api/v1/auth/logout")
+Controller --> user: response (200 OK + clear cookie)
+
+== Restaurant Flows (GET all, POST create) ==
+guest -> Server: req.get("/api/v1/restaurants")
+Server -> Router: app.use("/restaurants", restaurantRoutes)
+Router -> Controller: getRestaurants(req, res)
+Controller -> Model: find(query)
+Model -> Mongo: query restaurants
+Mongo --> Model: restaurant list
+Model --> Controller: restaurants
+Controller --> guest: response (200 OK)
+
+admin -> Server: req.post("/api/v1/restaurants")
+Server -> Router: app.use("/restaurants", restaurantRoutes)
+Router -> Controller: createRestaurant(req, res)
+Controller -> Model: create(req.body)
+Model -> Mongo: insert restaurant
+Mongo --> Model: restaurant
+Model --> Controller: restaurant
+Controller --> admin: response (201 Created)
+
+== Reservation Flows (POST create, GET/PUT/DELETE) ==
+user -> Server: req.post("/api/v1/restaurants/{id}/reservations")
+Server -> Router: app.use("/reservations", reservationRoutes)
+Router -> Controller: addReservation(req, res)
+Controller -> Model: create(req.body)\nwith validation (capacity, hours, daily limit)
+Model -> Mongo: insert reservation
+Mongo --> Model: reservation
+Model --> Controller: reservation
+Controller --> user: response (201 Created)
+
+user -> Server: req.get/put/delete("/api/v1/reservations/{id}")
+Server -> Router: app.use("/reservations", reservationRoutes)
+Router -> Controller: getReservation(req, res)\nupdateReservation(req, res)\ndeleteReservation(req, res)
+Controller -> Model: findById / findByIdAndUpdate / deleteOne(req, res)
+Model -> Mongo: query/update/delete reservation
+Mongo --> Model: reservation or null
+Model --> Controller: result
+Controller --> user: response (200/404)
+
+@enduml

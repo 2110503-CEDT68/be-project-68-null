@@ -1,0 +1,43 @@
+@startuml Restaurant Reservation Use Case Diagram
+left to right direction
+skinparam linetype dedicated
+
+together {
+  actor "Guest" as guest
+  actor "User" as user
+}
+
+rectangle "Restaurant Reservation API" as System {
+  usecase "Register" as register
+  usecase "Login" as login
+  usecase "Logout" as logout
+  usecase "View\nRestaurants" as viewRestaurants
+  usecase "View\nReservation" as viewReservation
+  usecase "Manage\nReservation" as manageReservation
+  usecase "Manage\nRestaurant" as manageRestaurant
+}
+
+together {
+  actor "Admin" as admin
+}
+
+guest -[hidden]down-> user
+user -[hidden]right-> System
+System -[hidden]right-> admin
+
+guest -- register
+guest -- login
+guest -- viewRestaurants
+
+user -- login
+user -- logout
+user -- viewReservation
+user -- manageReservation
+
+admin -- login
+admin -- logout
+admin -- viewReservation
+admin -- manageRestaurant
+admin -- manageReservation
+
+@enduml
