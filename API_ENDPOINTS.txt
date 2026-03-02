@@ -1,0 +1,33 @@
+Restaurant Reservation API - Endpoint List
+
+Base URL: /api/v1
+
+Documentation
+- GET /api-docs
+
+Auth
+- POST /api/v1/auth/register
+- POST /api/v1/auth/login
+- GET /api/v1/auth/me
+- GET /api/v1/auth/logout
+
+Restaurants
+- GET /api/v1/restaurants
+- POST /api/v1/restaurants
+- GET /api/v1/restaurants/:id
+- PUT /api/v1/restaurants/:id
+- DELETE /api/v1/restaurants/:id
+
+Reservations (global)
+- GET /api/v1/reservations
+- POST /api/v1/reservations
+- GET /api/v1/reservations/:id
+- PUT /api/v1/reservations/:id
+- DELETE /api/v1/reservations/:id
+
+Reservations (nested under restaurant)
+- GET /api/v1/restaurants/:restaurantId/reservations
+- POST /api/v1/restaurants/:restaurantId/reservations
+- GET /api/v1/restaurants/:restaurantId/reservations/:id
+- PUT /api/v1/restaurants/:restaurantId/reservations/:id
+- DELETE /api/v1/restaurants/:restaurantId/reservations/:id

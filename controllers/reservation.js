@@ -32,9 +32,11 @@ const checkTableAvailability = async (
     0,
   );
 
+  const availableCount = Math.max(restaurant.totalTables - reservedTables, 0);
+
   return {
-    isAvailable: reservedTables + reqTableCount <= restaurant.totalTables,
-    availableCount: restaurant.totalTables - reservedTables,
+    isAvailable: reqTableCount <= availableCount,
+    availableCount,
   };
 };
 
