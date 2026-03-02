@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Null — จองโต๊ะออนไลน์</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0f0e0c;
+      --surface: #1a1814;
+      --card: #211f1b;
+      --border: #2e2b25;
+      --gold: #c9a84c;
+      --gold-light: #e8c97a;
+      --text: #f0ead8;
+      --muted: #7a7060;
+      --danger: #c0392b;
+      --success: #27ae60;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; }
+
+    nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 40px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: var(--bg); z-index: 100;
+    }
+    .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--gold); letter-spacing: 1px; }
+    .nav-links { display: flex; gap: 8px; align-items: center; }
+    .nav-btn {
+      background: none; border: 1px solid var(--border); color: var(--text);
+      padding: 8px 18px; border-radius: 6px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem; transition: all 0.2s;
+    }
+    .nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .nav-btn.primary { background: var(--gold); border-color: var(--gold); color: #0f0e0c; font-weight: 500; }
+    .nav-btn.primary:hover { background: var(--gold-light); }
+    #user-info { color: var(--muted); font-size: 0.85rem; }
+
+    .page { display: none; padding: 40px; max-width: 1100px; margin: 0 auto; }
+    .page.active { display: block; }
+
+    .hero { text-align: center; padding: 80px 20px; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; line-height: 1.15; margin-bottom: 16px; }
+    .hero h1 span { color: var(--gold); }
+    .hero p { color: var(--muted); font-size: 1.1rem; margin-bottom: 36px; }
+    .hero-btn {
+      background: var(--gold); color: #0f0e0c; border: none;
+      padding: 14px 36px; border-radius: 8px; font-size: 1rem; font-weight: 500;
+      cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.2s;
+    }
+    .hero-btn:hover { background: var(--gold-light); }
+
+    .section-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 28px; }
+    .section-title span { color: var(--gold); }
+
+    .restaurant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .restaurant-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; transition: border-color 0.2s, transform 0.2s;
+    }
+    .restaurant-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .restaurant-card h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 8px; }
+    .restaurant-card p { color: var(--muted); font-size: 0.85rem; margin-bottom: 6px; }
+    .tables-badge {
+      display: inline-block; background: rgba(201,168,76,0.15); color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.3); padding: 3px 10px; border-radius: 20px;
+      font-size: 0.75rem; margin-top: 10px;
+    }
+    .reserve-btn {
+      display: block; width: 100%; margin-top: 16px; background: transparent;
+      border: 1px solid var(--gold); color: var(--gold); padding: 9px; border-radius: 7px;
+      cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; transition: all 0.2s;
+    }
+    .reserve-btn:hover { background: var(--gold); color: #0f0e0c; font-weight: 500; }
+
+    .hours-list { margin-top: 10px; }
+    .hours-list details summary { color: var(--gold); font-size: 0.8rem; cursor: pointer; margin-top: 8px; }
+    .hours-table { width: 100%; font-size: 0.78rem; margin-top: 6px; border-collapse: collapse; }
+    .hours-table td { padding: 2px 6px; color: var(--muted); }
+    .hours-table td:first-child { color: var(--text); }
+
+    .auth-wrapper {
+      max-width: 420px; margin: 60px auto; background: var(--card);
+      border: 1px solid var(--border); border-radius: 16px; padding: 40px;
+    }
+    .auth-wrapper h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input, .form-group select {
+      width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      padding: 11px 14px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+    .form-group select option { background: var(--surface); }
+    .submit-btn {
+      width: 100%; background: var(--gold); border: none; color: #0f0e0c;
+      padding: 13px; border-radius: 8px; font-size: 1rem; font-weight: 500;
+      cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.2s; margin-top: 8px;
+    }
+    .submit-btn:hover { background: var(--gold-light); }
+    .auth-switch { text-align: center; margin-top: 20px; color: var(--muted); font-size: 0.85rem; }
+    .auth-switch a { color: var(--gold); cursor: pointer; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      z-index: 200; justify-content: center; align-items: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 36px; width: 420px; max-width: 90vw; }
+    .modal h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 22px; }
+    .modal-close { float: right; background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; margin-top: -4px; }
+
+    .reservations-list { display: flex; flex-direction: column; gap: 14px; }
+    .reservation-item {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    }
+    .reservation-item .res-info h4 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 4px; }
+    .reservation-item .res-info p { color: var(--muted); font-size: 0.85rem; }
+    .delete-btn {
+      background: transparent; border: 1px solid var(--danger); color: var(--danger);
+      padding: 7px 16px; border-radius: 6px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 0.8rem; transition: all 0.2s;
+    }
+    .delete-btn:hover { background: var(--danger); color: white; }
+    .edit-btn {
+      background: transparent; border: 1px solid var(--gold); color: var(--gold);
+      padding: 7px 16px; border-radius: 6px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 0.8rem; transition: all 0.2s;
+    }
+    .edit-btn:hover { background: var(--gold); color: #0f0e0c; }
+    .res-actions { display: flex; gap: 8px; }
+
+    .toast {
+      position: fixed; bottom: 30px; right: 30px; background: var(--card);
+      border: 1px solid var(--border); color: var(--text); padding: 14px 22px;
+      border-radius: 10px; font-size: 0.9rem; opacity: 0; transform: translateY(10px);
+      transition: all 0.3s; z-index: 999; max-width: 320px;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+
+    .loading { text-align: center; padding: 60px; color: var(--muted); }
+    .spinner {
+      display: inline-block; width: 28px; height: 28px; border: 2px solid var(--border);
+      border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state { text-align: center; padding: 60px; color: var(--muted); }
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+      display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center;
+    }
+    .filter-bar input, .filter-bar select {
+      background: var(--card); border: 1px solid var(--border); color: var(--text);
+      padding: 9px 14px; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; outline: none; transition: border-color 0.2s;
+    }
+    .filter-bar input { flex: 1; min-width: 180px; }
+    .filter-bar select { min-width: 160px; }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--gold); }
+    .filter-bar select option { background: var(--surface); }
+    .filter-count { color: var(--muted); font-size: 0.82rem; margin-left: auto; white-space: nowrap; }
+    .open-badge {
+      display: inline-block; background: rgba(39,174,96,0.15); color: #2ecc71;
+      border: 1px solid rgba(39,174,96,0.3); padding: 2px 8px; border-radius: 20px;
+      font-size: 0.72rem; margin-left: 6px; vertical-align: middle;
+    }
+    .closed-badge {
+      display: inline-block; background: rgba(192,57,43,0.15); color: #e74c3c;
+      border: 1px solid rgba(192,57,43,0.3); padding: 2px 8px; border-radius: 20px;
+      font-size: 0.72rem; margin-left: 6px; vertical-align: middle;
+    }
+    .admin-badge {
+      background: rgba(201,168,76,0.2); color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.4); padding: 2px 10px; border-radius: 20px;
+      font-size: 0.75rem; margin-right: 6px;
+    }
+    .admin-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .admin-table th { text-align: left; padding: 10px 14px; color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+    .admin-table td { padding: 12px 14px; font-size: 0.85rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .admin-table tr:last-child td { border-bottom: none; }
+    .admin-table tr:hover td { background: rgba(255,255,255,0.02); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Null Restaurant Reservation</div>
+  <div class="nav-links">
+    <span id="user-info"></span>
+    <button class="nav-btn" onclick="showPage('restaurants')" id="nav-restaurants" style="display:none">ร้านอาหาร</button>
+    <button class="nav-btn" onclick="showPage('my-reservations')" id="nav-my-res" style="display:none">การจองของฉัน</button>
+    <button class="nav-btn" onclick="showPage('admin')" id="nav-admin" style="display:none">⚙️ Admin</button>
+    <button class="nav-btn" onclick="logout()" id="nav-logout" style="display:none">ออกจากระบบ</button>
+    <button class="nav-btn" onclick="showPage('login')" id="nav-login">เข้าสู่ระบบ</button>
+    <button class="nav-btn primary" onclick="showPage('register')" id="nav-register">สมัครสมาชิก</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <h1>จองโต๊ะ<br/><span>ร้านอาหารในฝัน</span></h1>
+    <p>ค้นหาและจองโต๊ะร้านอาหารที่คุณชื่นชอบได้ง่ายๆ</p>
+    <button class="hero-btn" onclick="showPage('restaurants')">ดูร้านอาหารทั้งหมด →</button>
+  </div>
+</div>
+
+<!-- RESTAURANTS -->
+<div class="page" id="page-restaurants">
+  <h2 class="section-title">ร้านอาหาร<span>ทั้งหมด</span></h2>
+  <div class="filter-bar">
+    <input type="text" id="filter-name" placeholder="🔍 ค้นหาชื่อร้าน..." oninput="applyFilters()"/>
+    <select id="filter-day" onchange="applyFilters()">
+      <option value="">📅 ทุกวัน</option>
+      <option value="Monday">วันจันทร์</option>
+      <option value="Tuesday">วันอังคาร</option>
+      <option value="Wednesday">วันพุธ</option>
+      <option value="Thursday">วันพฤหัสบดี</option>
+      <option value="Friday">วันศุกร์</option>
+      <option value="Saturday">วันเสาร์</option>
+      <option value="Sunday">วันอาทิตย์</option>
+    </select>
+    <select id="filter-province" onchange="applyFilters()">
+      <option value="">📍 ทุกพื้นที่</option>
+    </select>
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+  <div id="restaurant-list" class="restaurant-grid">
+    <div class="loading"><div class="spinner"></div><br/>กำลังโหลด...</div>
+  </div>
+</div>
+
+<!-- MY RESERVATIONS -->
+<div class="page" id="page-my-reservations">
+  <h2 class="section-title">การจอง<span>ของฉัน</span></h2>
+  <div id="reservation-list" class="reservations-list">
+    <div class="loading"><div class="spinner"></div><br/>กำลังโหลด...</div>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div class="page" id="page-admin">
+  <h2 class="section-title">⚙️ Admin — <span>จัดการการจองทั้งหมด</span></h2>
+  <div class="filter-bar">
+    <input type="text" id="admin-filter-name" placeholder="🔍 ค้นหาชื่อร้านหรือผู้ใช้..." oninput="applyAdminFilter()"/>
+    <span class="filter-count" id="admin-filter-count"></span>
+  </div>
+  <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ผู้จอง</th>
+          <th>ร้านอาหาร</th>
+          <th>วันเวลา</th>
+          <th>โต๊ะ</th>
+          <th>จัดการ</th>
+        </tr>
+      </thead>
+      <tbody id="admin-reservation-tbody">
+        <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);">กำลังโหลด...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="page" id="page-login">
+  <div class="auth-wrapper">
+    <h2>เข้าสู่ระบบ</h2>
+    <div class="form-group"><label>อีเมล</label><input type="email" id="login-email" placeholder="your@email.com"/></div>
+    <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="login-password" placeholder="••••••"/></div>
+    <button class="submit-btn" onclick="login()">เข้าสู่ระบบ</button>
+    <div class="auth-switch">ยังไม่มีบัญชี? <a onclick="showPage('register')">สมัครสมาชิก</a></div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="page" id="page-register">
+  <div class="auth-wrapper">
+    <h2>สมัครสมาชิก</h2>
+    <div class="form-group"><label>ชื่อ</label><input type="text" id="reg-name" placeholder="ชื่อ-นามสกุล"/></div>
+    <div class="form-group"><label>เบอร์โทร</label><input type="text" id="reg-tel" placeholder="0812345678"/></div>
+    <div class="form-group"><label>อีเมล</label><input type="email" id="reg-email" placeholder="your@email.com"/></div>
+    <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="reg-password" placeholder="อย่างน้อย 6 ตัวอักษร"/></div>
+    <button class="submit-btn" onclick="register()">สมัครสมาชิก</button>
+    <div class="auth-switch">มีบัญชีแล้ว? <a onclick="showPage('login')">เข้าสู่ระบบ</a></div>
+  </div>
+</div>
+
+<!-- MODAL RESERVE -->
+<div class="modal-overlay" id="modal-reserve">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modal-restaurant-name">จองโต๊ะ</h3>
+    <div class="form-group"><label>วันและเวลา</label><input type="datetime-local" id="reserve-date"/></div>
+    <div class="form-group"><label>จำนวนโต๊ะ</label><input type="number" id="reserve-tables" min="1" value="1"/></div>
+    <button class="submit-btn" onclick="submitReservation()">ยืนยันการจอง</button>
+  </div>
+</div>
+
+<!-- MODAL EDIT RESERVATION -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <button class="modal-close" onclick="closeEditModal()">✕</button>
+    <h3>แก้ไขการจอง</h3>
+    <div class="form-group"><label>วันและเวลา</label><input type="datetime-local" id="edit-date"/></div>
+    <div class="form-group"><label>จำนวนโต๊ะ</label><input type="number" id="edit-tables" min="1" value="1"/></div>
+    <button class="submit-btn" onclick="submitEdit()">บันทึกการแก้ไข</button>
+  </div>
+</div>
+
+<!-- MODAL EDIT ADMIN RESERVATION -->
+<div class="modal-overlay" id="modal-admin-edit">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAdminEditModal()">✕</button>
+    <h3>⚙️ แก้ไขการจอง (Admin)</h3>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:18px;" id="admin-edit-info"></p>
+    <div class="form-group"><label>วันและเวลา</label><input type="datetime-local" id="admin-edit-date"/></div>
+    <div class="form-group"><label>จำนวนโต๊ะ</label><input type="number" id="admin-edit-tables" min="1" value="1"/></div>
+    <button class="submit-btn" onclick="submitAdminEdit()">บันทึก</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'http://localhost:5000/api/v1';
+  let token = localStorage.getItem('token');
+  let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+  let selectedRestaurantId = null;
+
+  updateNavbar();
+
+  function updateNavbar() {
+    const loggedIn = !!token;
+    const isAdmin = currentUser?.role === 'admin';
+    document.getElementById('nav-login').style.display = loggedIn ? 'none' : '';
+    document.getElementById('nav-register').style.display = loggedIn ? 'none' : '';
+    document.getElementById('nav-logout').style.display = loggedIn ? '' : 'none';
+    document.getElementById('nav-restaurants').style.display = loggedIn ? '' : 'none';
+    document.getElementById('nav-my-res').style.display = (loggedIn && !isAdmin) ? '' : 'none';
+    document.getElementById('nav-admin').style.display = isAdmin ? '' : 'none';
+    document.getElementById('user-info').innerHTML = currentUser
+      ? `${isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}สวัสดี, ${currentUser.name}`
+      : '';
+  }
+
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (name === 'restaurants') loadRestaurants();
+    if (name === 'my-reservations') loadMyReservations();
+    if (name === 'admin') loadAdminReservations();
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast show ${type}`;
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  // ===== AUTH =====
+  async function login() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!data.success) { showToast(data.msg || 'เข้าสู่ระบบไม่สำเร็จ', 'error'); return; }
+      token = data.token;
+      localStorage.setItem('token', token);
+      const meRes = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+      const meData = await meRes.json();
+      currentUser = meData.data;
+      localStorage.setItem('user', JSON.stringify(currentUser));
+      updateNavbar();
+      showToast('เข้าสู่ระบบสำเร็จ!');
+      showPage('restaurants');
+    } catch (e) { showToast('เชื่อมต่อ server ไม่ได้', 'error'); }
+  }
+
+  async function register() {
+    const body = {
+      name: document.getElementById('reg-name').value,
+      tel: document.getElementById('reg-tel').value,
+      email: document.getElementById('reg-email').value,
+      password: document.getElementById('reg-password').value,
+    };
+    try {
+      const res = await fetch(`${API}/auth/register`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!data.success) { showToast(data.msg || 'สมัครไม่สำเร็จ', 'error'); return; }
+      token = data.token;
+      localStorage.setItem('token', token);
+      const meRes = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+      const meData = await meRes.json();
+      currentUser = meData.data;
+      localStorage.setItem('user', JSON.stringify(currentUser));
+      updateNavbar();
+      showToast('สมัครสมาชิกสำเร็จ!');
+      showPage('restaurants');
+    } catch (e) { showToast('เชื่อมต่อ server ไม่ได้', 'error'); }
+  }
+
+  async function logout() {
+    try {
+      await fetch(`${API}/auth/logout`, { headers: { Authorization: `Bearer ${token}` } });
+    } catch (e) {}
+    token = null; currentUser = null;
+    localStorage.removeItem('token'); localStorage.removeItem('user');
+    updateNavbar(); showPage('home'); showToast('ออกจากระบบแล้ว');
+  }
+
+  // ===== RESTAURANTS =====
+  let allRestaurants = [];
+
+  function getTodayName() {
+    return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+  }
+
+  function setTodayDefault() {
+    document.getElementById('filter-day').value = getTodayName();
+  }
+
+  function isOpenOnDay(restaurant, day) {
+    if (!day) return true;
+    if (!restaurant.openingHours || !restaurant.openingHours.length) return false;
+    const info = restaurant.openingHours.find(h => h.day === day);
+    return info && !info.closed;
+  }
+
+  function extractProvince(address) {
+    if (!address) return 'อื่นๆ';
+    const parts = address.split(',').map(s => s.trim());
+    return parts[parts.length - 1] || 'อื่นๆ';
+  }
+
+  function populateProvinces(restaurants) {
+    const provinces = [...new Set(restaurants.map(r => extractProvince(r.address)))].sort();
+    const sel = document.getElementById('filter-province');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">📍 ทุกพื้นที่</option>';
+    provinces.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p; opt.textContent = p;
+      sel.appendChild(opt);
+    });
+    if (current) sel.value = current;
+  }
+
+  function applyFilters() {
+    const name = document.getElementById('filter-name').value.toLowerCase();
+    const day = document.getElementById('filter-day').value;
+    const province = document.getElementById('filter-province').value;
+    const filtered = allRestaurants.filter(r => {
+      const matchName = !name || r.name.toLowerCase().includes(name);
+      const matchDay = isOpenOnDay(r, day);
+      const matchProvince = !province || extractProvince(r.address) === province;
+      return matchName && matchDay && matchProvince;
+    });
+    document.getElementById('filter-count').textContent = `แสดง ${filtered.length} / ${allRestaurants.length} ร้าน`;
+    renderRestaurants(filtered);
+  }
+
+  function renderRestaurants(list) {
+    if (!list.length) {
+      document.getElementById('restaurant-list').innerHTML = '<div class="empty-state"><p>ไม่พบร้านอาหารที่ตรงกับเงื่อนไข</p></div>';
+      return;
+    }
+    const today = getTodayName();
+    document.getElementById('restaurant-list').innerHTML = list.map(r => {
+      const openToday = isOpenOnDay(r, today);
+      const todayInfo = r.openingHours?.find(h => h.day === today);
+      const todayText = todayInfo && !todayInfo.closed ? `เปิด ${todayInfo.open} - ${todayInfo.close}` : 'ปิดวันนี้';
+      const hoursRows = r.openingHours?.length
+        ? r.openingHours.map(h => `<tr><td>${h.day}</td><td>${h.closed ? 'ปิด' : `${h.open} - ${h.close}`}</td></tr>`).join('')
+        : '<tr><td colspan="2">ไม่มีข้อมูล</td></tr>';
+      return `
+        <div class="restaurant-card">
+          <h3>${r.name}${openToday
+            ? '<span class="open-badge">เปิดอยู่</span>'
+            : '<span class="closed-badge">ปิดวันนี้</span>'}
+          </h3>
+          <p>📍 ${r.address}</p>
+          <p>📞 ${r.tel}</p>
+          <p style="color:${openToday ? '#2ecc71' : 'var(--muted)'}; font-size:0.8rem; margin-top:4px;">🕐 วันนี้: ${todayText}</p>
+          <span class="tables-badge">🪑 ${r.totalTables} โต๊ะ</span>
+          <div class="hours-list">
+            <details><summary>ดูเวลาเปิด-ปิดทั้งสัปดาห์</summary>
+              <table class="hours-table">${hoursRows}</table>
+            </details>
+          </div>
+          ${token
+            ? `<button class="reserve-btn" onclick="openReserveModal('${r._id}', '${r.name}')">จองโต๊ะ</button>`
+            : `<button class="reserve-btn" onclick="showPage('login')">เข้าสู่ระบบเพื่อจอง</button>`}
+        </div>`;
+    }).join('');
+  }
+
+  async function loadRestaurants() {
+    document.getElementById('restaurant-list').innerHTML = '<div class="loading"><div class="spinner"></div><br/>กำลังโหลด...</div>';
+    try {
+      const res = await fetch(`${API}/restaurants?limit=100`);
+      const data = await res.json();
+      if (!data.success || !data.data.length) {
+        document.getElementById('restaurant-list').innerHTML = '<div class="empty-state"><p>ไม่พบร้านอาหาร</p></div>';
+        return;
+      }
+      allRestaurants = data.data;
+      populateProvinces(allRestaurants);
+      setTodayDefault();
+      applyFilters();
+    } catch (e) {
+      document.getElementById('restaurant-list').innerHTML = '<div class="empty-state"><p>เชื่อมต่อ server ไม่ได้</p></div>';
+    }
+  }
+
+  // ===== MODAL =====
+  function openReserveModal(restaurantId, name) {
+    selectedRestaurantId = restaurantId;
+    document.getElementById('modal-restaurant-name').textContent = `จองโต๊ะ — ${name}`;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(18, 0, 0, 0);
+    document.getElementById('reserve-date').value = tomorrow.toISOString().slice(0, 16);
+    document.getElementById('reserve-tables').value = 1;
+    document.getElementById('modal-reserve').classList.add('open');
+  }
+
+  function closeModal() { document.getElementById('modal-reserve').classList.remove('open'); }
+  document.getElementById('modal-reserve').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+
+  async function submitReservation() {
+    const reservationDate = new Date(document.getElementById('reserve-date').value).toISOString();
+    const tableCount = parseInt(document.getElementById('reserve-tables').value);
+    if (!reservationDate || !tableCount) { showToast('กรุณากรอกข้อมูลให้ครบ', 'error'); return; }
+    try {
+      const res = await fetch(`${API}/restaurants/${selectedRestaurantId}/reservations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ reservationDate, tableCount })
+      });
+      const data = await res.json();
+      if (!data.success) { showToast(data.message || data.error || 'จองไม่สำเร็จ', 'error'); return; }
+      closeModal();
+      showToast('จองโต๊ะสำเร็จ! 🎉');
+    } catch (e) { showToast('เชื่อมต่อ server ไม่ได้', 'error'); }
+  }
+
+  // ===== MY RESERVATIONS =====
+  let editingReservationId = null;
+
+  async function loadMyReservations() {
+    if (!token) { showPage('login'); return; }
+    document.getElementById('reservation-list').innerHTML = '<div class="loading"><div class="spinner"></div><br/>กำลังโหลด...</div>';
+    try {
+      const res = await fetch(`${API}/reservations`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      if (!data.success || !data.data.length) {
+        document.getElementById('reservation-list').innerHTML = '<div class="empty-state"><p>ยังไม่มีการจอง</p></div>';
+        return;
+      }
+      document.getElementById('reservation-list').innerHTML = data.data.map(r => `
+        <div class="reservation-item">
+          <div class="res-info">
+            <h4>${r.restaurant?.name || 'ร้านอาหาร'}</h4>
+            <p>📅 ${new Date(r.reservationDate).toLocaleString('th-TH')} &nbsp;–&nbsp; ${new Date(r.endTime).toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'})}</p>
+            <p>📍 ${r.restaurant?.address || ''} &nbsp;·&nbsp; 🪑 ${r.tableCount} โต๊ะ</p>
+          </div>
+          <div class="res-actions">
+            <button class="edit-btn" onclick="openEditModal('${r._id}', '${r.reservationDate}', ${r.tableCount})">✏️ แก้ไข</button>
+            <button class="delete-btn" onclick="deleteReservation('${r._id}')">ยกเลิก</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      document.getElementById('reservation-list').innerHTML = '<div class="empty-state"><p>เชื่อมต่อ server ไม่ได้</p></div>';
+    }
+  }
+
+  function openEditModal(id, reservationDate, tableCount) {
+    editingReservationId = id;
+    document.getElementById('edit-date').value = new Date(reservationDate).toISOString().slice(0, 16);
+    document.getElementById('edit-tables').value = tableCount;
+    document.getElementById('modal-edit').classList.add('open');
+  }
+
+  function closeEditModal() { document.getElementById('modal-edit').classList.remove('open'); }
+  document.getElementById('modal-edit').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+
+  async function submitEdit() {
+    const reservationDate = new Date(document.getElementById('edit-date').value).toISOString();
+    const tableCount = parseInt(document.getElementById('edit-tables').value);
+    if (!reservationDate || !tableCount) { showToast('กรุณากรอกข้อมูลให้ครบ', 'error'); return; }
+    try {
+      const res = await fetch(`${API}/reservations/${editingReservationId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ reservationDate, tableCount })
+      });
+      const data = await res.json();
+      if (!data.success) { showToast(data.message || data.error || 'แก้ไขไม่สำเร็จ', 'error'); return; }
+      closeEditModal();
+      showToast('แก้ไขการจองสำเร็จ! ✅');
+      loadMyReservations();
+    } catch (e) { showToast('เชื่อมต่อ server ไม่ได้', 'error'); }
+  }
+
+  async function deleteReservation(id) {
+    if (!confirm('ต้องการยกเลิกการจองนี้?')) return;
+    try {
+      const res = await fetch(`${API}/reservations/${id}`, {
+        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data.success) { showToast(data.message || 'ยกเลิกไม่สำเร็จ', 'error'); return; }
+      showToast('ยกเลิกการจองแล้ว');
+      loadMyReservations();
+    } catch (e) { showToast('เชื่อมต่อ server ไม่ได้', 'error'); }
+  }
+
+  // ===== ADMIN =====
+  let allAdminReservations = [];
+  let adminEditingId = null;
+
+  async function loadAdminReservations() {
+    document.getElementById('admin-reservation-tbody').innerHTML =
+      '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);">กำลังโหลด...</td></tr>';
+    try {
+      const res = await fetch(`${API}/reservations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data.success) { showToast('โหลดข้อมูลไม่สำเร็จ', 'error'); return; }
+      allAdminReservations = data.data || [];
+      document.getElementById('admin-filter-count').textContent = `ทั้งหมด ${allAdminReservations.length} รายการ`;
+      renderAdminTable(allAdminReservations);
+    } catch (e) {
+      document.getElementById('admin-reservation-tbody').innerHTML =
+        '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);">เชื่อมต่อ server ไม่ได้</td></tr>';
+    }
+  }
+
+  function applyAdminFilter() {
+    const q = document.getElementById('admin-filter-name').value.toLowerCase();
+    const filtered = allAdminReservations.filter(r =>
+      (r.restaurant?.name || '').toLowerCase().includes(q) ||
+      (r.user?.name || r.user || '').toString().toLowerCase().includes(q)
+    );
+    document.getElementById('admin-filter-count').textContent = `แสดง ${filtered.length} / ${allAdminReservations.length} รายการ`;
+    renderAdminTable(filtered);
+  }
+
+  function renderAdminTable(list) {
+    if (!list.length) {
+      document.getElementById('admin-reservation-tbody').innerHTML =
+        '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);">ไม่พบข้อมูล</td></tr>';
+      return;
+    }
+    document.getElementById('admin-reservation-tbody').innerHTML = list.map(r => `
+      <tr>
+        <td style="color:var(--text)">${r.user?.name || r.user || '-'}</td>
+        <td style="color:var(--gold)">${r.restaurant?.name || '-'}</td>
+        <td style="color:var(--muted)">${new Date(r.reservationDate).toLocaleString('th-TH')}</td>
+        <td style="text-align:center">${r.tableCount}</td>
+        <td>
+          <div class="res-actions">
+            <button class="edit-btn" onclick="openAdminEditModal('${r._id}','${r.reservationDate}',${r.tableCount},'${r.restaurant?.name || ''}')">✏️</button>
+            <button class="delete-btn" onclick="adminDeleteReservation('${r._id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function openAdminEditModal(id, reservationDate, tableCount, restaurantName) {
+    adminEditingId = id;
+    document.getElementById('admin-edit-info').textContent = `ร้าน: ${restaurantName}`;
+    document.getElementById('admin-edit-date').value = new Date(reservationDate).toISOString().slice(0, 16);
+    document.getElementById('admin-edit-tables').value = tableCount;
+    document.getElementById('modal-admin-edit').classList.add('open');
+  }
+
+  function closeAdminEditModal() { document.getElementById('modal-admin-edit').classList.remove('open'); }
+  document.getElementById('modal-admin-edit').addEventListener('click', function(e) { if (e.target === this) closeAdminEditModal(); });
+
+  async function submitAdminEdit() {
+    const reservationDate = new Date(document.getElementById('admin-edit-date').value).toISOString();
+    const tableCount = parseInt(document.getElementById('admin-edit-tables').value);
+    try {
+      const res = await fetch(`${API}/reservations/${adminEditingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reservationDate, tableCount })
+      });
+      const data = await res.json();
+      if (!data.success) { showToast(data.message || 'แก้ไขไม่สำเร็จ', 'error'); return; }
+      closeAdminEditModal();
+      showToast('แก้ไขสำเร็จ ✅');
+      loadAdminReservations();
+    } catch (e) { showToast('เชื่อมต่อ server ไม่ได้', 'error'); }
+  }
+
+  async function adminDeleteReservation(id) {
+    if (!confirm('ต้องการลบการจองนี้?')) return;
+    try {
+      const res = await fetch(`${API}/reservations/${id}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data.success) { showToast('ลบไม่สำเร็จ', 'error'); return; }
+      showToast('ลบการจองแล้ว');
+      loadAdminReservations();
+    } catch (e) { showToast('เชื่อมต่อ server ไม่ได้', 'error'); }
+  }
+</script>
+</body>
+</html>
