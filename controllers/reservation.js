@@ -160,7 +160,18 @@ exports.addReservation = async (req, res, next) => {
 
     const requestedDate = new Date(req.body.reservationDate);
 
-    // 2. Check 3-reservations-per-day limit
+    // 2. Check if reservation date is in the past (GMT+7 timezone)
+    const nowInBangkok = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+    );
+    if (requestedDate < nowInBangkok) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot reserve in the past",
+      });
+    }
+
+    // 3. Check 3-reservations-per-day limit
     const startOfDay = new Date(requestedDate).setUTCHours(0, 0, 0, 0);
     const endOfDay = new Date(requestedDate).setUTCHours(23, 59, 59, 999);
 
@@ -176,7 +187,7 @@ exports.addReservation = async (req, res, next) => {
       });
     }
 
-    // 3. Check opening hours
+    // 4. Check opening hours
     const storeStatus = checkOpeningHours(restaurant, req.body.reservationDate);
     if (!storeStatus.isOpen) {
       return res
@@ -184,7 +195,7 @@ exports.addReservation = async (req, res, next) => {
         .json({ success: false, message: storeStatus.message });
     }
 
-    // 4. Check capacity & time overlap
+    // 5. Check capacity & time overlap
     const capacity = await checkTableAvailability(
       req.params.restaurantId,
       req.body.reservationDate,
@@ -198,10 +209,10 @@ exports.addReservation = async (req, res, next) => {
       });
     }
 
-    // 5. Calculate and set endTime
+    // 6. Calculate and set endTime
     req.body.endTime = new Date(requestedDate.getTime() + MEAL_DURATION);
 
-    // 6. Create reservation
+    // 7. Create reservation
     const reservation = await Reservation.create(req.body);
     res.status(201).json({ success: true, data: reservation });
   } catch (err) {
@@ -243,6 +254,18 @@ exports.updateReservation = async (req, res, next) => {
       const restaurant = await Restaurant.findById(reservation.restaurant);
 
       if (req.body.reservationDate) {
+        // Check if new date is in the past (GMT+7)
+        const nowInBangkok = new Date(
+          new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+        );
+        if (new Date(newDate) < nowInBangkok) {
+          return res.status(400).json({
+            success: false,
+            message: "Cannot update to a past date",
+          });
+        }
+
+
         const storeStatus = checkOpeningHours(restaurant, newDate);
         if (!storeStatus.isOpen) {
           return res
