@@ -10,9 +10,12 @@ const {
 
 const reservationRouter = require("./reservations");
 
+const menuRouter = require("./restaurantMenu");
+
 const router = express.Router({ mergeParams: true }); // allow child to access parent params
 
 router.use("/:restaurantId/reservations", reservationRouter);
+router.use("/:restaurantId/menus", menuRouter);
 
 router
   .route("/")
