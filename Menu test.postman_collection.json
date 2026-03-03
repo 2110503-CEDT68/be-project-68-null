@@ -1,0 +1,576 @@
+{
+  "info": {
+    "_postman_id": "42ac6efb-626f-4c4f-851e-fd6cf91ca094",
+    "name": "Menu test",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52823405",
+    "_collection_link": "https://go.postman.co/collection/52823405-42ac6efb-626f-4c4f-851e-fd6cf91ca094?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "restuarantMenu",
+      "item": [
+        {
+          "name": "Log in Copy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"TOKEN\",pm.response.json().token)",
+                  "",
+                  "pm.test('Response time < 1000ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "})",
+                  "",
+                  "pm.test('Login: status is 200/201 or expected error', function () {",
+                  "    pm.expect([",
+                  "        200,",
+                  "        201,",
+                  "        400,",
+                  "        401",
+                  "    ]).to.include(pm.response.code);",
+                  "})",
+                  "",
+                  "pm.test('Login: JSON body has {success}', function () {",
+                  "    pm.response.to.be.withBody;",
+                  "    pm.response.to.be.json;",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData.success).to.be.a('boolean');",
+                  "})",
+                  "",
+                  "pm.test('Login: capture token if present', function () {",
+                  "    if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "        var jsonData = pm.response.json();",
+                  "        var token = jsonData && jsonData.token || jsonData && jsonData.data && jsonData.data.token;",
+                  "        pm.expect(token, 'token present in login response').to.exist;",
+                  "        if (token) {",
+                  "            pm.environment.set('TOKEN', token);",
+                  "        }",
+                  "    }",
+                  "})",
+                  "",
+                  "pm.test('Login: error schema on non-2xx', function () {",
+                  "    if (pm.response.code < 200 || pm.response.code >= 300) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('success', false);",
+                  "        pm.expect(jsonData).to.satisfy(function (b) {",
+                  "            return b.error || b.message || b.errors;",
+                  "        });",
+                  "    }",
+                  "})"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"admin@example.com\",\r\n    \"password\": \"123456\"\r\n}"
+            },
+            "url": {
+              "raw": "{{url}}/api/v1/auth/login",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"success is boolean and equals true\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.a(\"boolean\");",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test(\"count is a number\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.count).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "pm.test(\"data is an array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"count equals data.length\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.count).to.eql(jsonData.data.length);",
+                  "});",
+                  "",
+                  "pm.test(\"each item in data has _id, restaurant, and items fields\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.length > 0) {",
+                  "        jsonData.data.forEach(function (item) {",
+                  "            pm.expect(item._id).to.be.a(\"string\");",
+                  "            pm.expect(item.restaurant).to.be.a(\"string\");",
+                  "            pm.expect(item.items).to.be.an(\"array\");",
+                  "        });",
+                  "    }",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/api/v1/restaurants/:restaurantId/menus/",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants",
+                ":restaurantId",
+                "menus",
+                ""
+              ],
+              "variable": [
+                {
+                  "key": "restaurantId",
+                  "value": "69a315ab57168718b14e3135"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"success is boolean and equals true\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.a(\"boolean\");",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test(\"data is an object\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an(\"object\");",
+                  "});",
+                  "",
+                  "pm.test(\"data has _id as string\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data._id).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.test(\"data has restaurant as string\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.restaurant).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.test(\"data has items as array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.items).to.be.an(\"array\");",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/api/v1/restaurants/:restaurantId/menus/:id",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants",
+                ":restaurantId",
+                "menus",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "restaurantId",
+                  "value": "69a315ab57168718b14e3135"
+                },
+                {
+                  "key": "id",
+                  "value": "69a696d9ab78584549d7ac2f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "/* 1. Status code */",
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.expect(pm.response.code).to.eql(201);",
+                  "});",
+                  "",
+                  "/* 2. success */",
+                  "pm.test('success is boolean and equals true', function () {",
+                  "  pm.expect(jsonData.success).to.be.a('boolean');",
+                  "  pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "/* ===== guard เฉพาะตอนผ่านจริง ===== */",
+                  "if (pm.response.code === 201 && jsonData.success === true) {",
+                  "",
+                  "  pm.test('data is an object', function () {",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "  });",
+                  "",
+                  "  pm.test('data has _id', function () {",
+                  "    pm.expect(jsonData.data).to.have.property('_id').that.is.a('string');",
+                  "  });",
+                  "",
+                  "  pm.test('data has restaurant', function () {",
+                  "    pm.expect(jsonData.data).to.have.property('restaurant').that.is.a('string');",
+                  "  });",
+                  "",
+                  "  pm.test('data has items array', function () {",
+                  "    pm.expect(jsonData.data).to.have.property('items').that.is.an('array');",
+                  "  });",
+                  "",
+                  "  /* set variables */",
+                  "  pm.collectionVariables.set('menuId', jsonData.data._id);",
+                  "  pm.collectionVariables.set('menuRestaurantId', jsonData.data.restaurant);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"{{$randomCompanyName}}\",\r\n    \"description\": \"{{$randomCompanyName}}\",\r\n    \"price\": \"{{$randomAlphaNumeric}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/api/v1/restaurants/:restaurantId/menus",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants",
+                ":restaurantId",
+                "menus"
+              ],
+              "variable": [
+                {
+                  "key": "restaurantId",
+                  "value": "69a315ab57168718b14e3135"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"success is boolean and equals true\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.a(\"boolean\");",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test(\"data is an object\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an(\"object\");",
+                  "});",
+                  "",
+                  "pm.test(\"data has _id as string\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data._id).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.test(\"data has restaurant as string\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.restaurant).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.test(\"data has items as array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.items).to.be.an(\"array\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\":\"{{$randomCompanyName}}\",\r\n\"description\":\"{{$randomCompanyName}}\",\r\n\"price\":\"{{$randomAlphaNumeric}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/api/v1/restaurants/:restaurantId/menus/:id",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants",
+                ":restaurantId",
+                "menus",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "restaurantId",
+                  "value": "69a315ab57168718b14e3135"
+                },
+                {
+                  "key": "id",
+                  "value": "69a696d9ab78584549d7ac2f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"success is boolean and equals true\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.a(\"boolean\");",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/api/v1/restaurants/:restaurantId/menus/:id",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "restaurants",
+                ":restaurantId",
+                "menus",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "restaurantId",
+                  "value": "{{menuRestaurantId}}"
+                },
+                {
+                  "key": "id",
+                  "value": "{{menuId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "menuRestaurantId",
+      "value": "69a315ab57168718b14e3135"
+    },
+    {
+      "key": "menuId",
+      "value": "69a6b62e24b0f0f247beaaf4"
+    },
+    {
+      "key": "token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTMwZmU0MmNmOGZlNzBmNzAxYjhmZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3MjUzMzg1OSwiZXhwIjoxNzc1MTI1ODU5fQ.MVQ3I2sfWQZtbewP58G72U3r7BSqEQCJmIVQ59QAmR0"
+    }
+  ]
+}
