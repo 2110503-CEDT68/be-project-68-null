@@ -116,14 +116,14 @@ exports.getMe = async (req, res, next) => {
 // @access  Private
 exports.logout = async (req, res, next) => {
   try {
-    // Clear cookie โดยไม่ส่งค่า และใช้ maxAge: 0 เพื่อให้หมดอายุทันที
+    // Clear cookie by setting maxAge to 0
     res.clearCookie("token", {
       httpOnly: true,
     });
 
     res.status(200).json({
       success: true,
-      data: {},
+      message: "Logged out successfully",
     });
   } catch (err) {
     console.error(err);

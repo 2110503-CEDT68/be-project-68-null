@@ -5,12 +5,12 @@ const User = require("../models/User");
 exports.protect = async (req, res, next) => {
   let token;
 
-  // if (
-  //   req.headers.authorization && // Check if the authorization header exists
-  //   req.headers.authorization.startsWith("Bearer") // Check if it starts with "Bearer"
-  // ) {
-  //   token = req.headers.authorization.split(" ")[1];
-  // }
+  if (
+    req.headers.authorization && // Check if the authorization header exists
+    req.headers.authorization.startsWith("Bearer") // Check if it starts with "Bearer"
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
 
   if (req.cookies && req.cookies.token) {
     token = req.cookies.token;

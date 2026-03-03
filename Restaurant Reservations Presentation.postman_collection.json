@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "800f74de-ea79-4f0f-83c9-23e9af3105df",
-    "name": "Restaurant Reservations Presentation",
+    "_postman_id": "0582954a-dfa4-4a42-8d86-caa54c32a48b",
+    "name": "Restaurant Reservations Presentation Copy",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "48246155",
-    "_collection_link": "https://go.postman.co/collection/48246155-800f74de-ea79-4f0f-83c9-23e9af3105df?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/48246155-0582954a-dfa4-4a42-8d86-caa54c32a48b?source=collection_link"
   },
   "item": [
     {
@@ -18,7 +18,7 @@
               "",
               "const registerResponse = pm.response.json();",
               "if (registerResponse && registerResponse.data && registerResponse.data._id) {",
-              "    pm.environment.set(\"UserId\", registerResponse.data._id);",
+              "    pm.environment.set(\"UserId\", pm.response.json().data._id);",
               "}",
               "",
               "const requestBody = JSON.parse(pm.request.body.raw);",
@@ -406,9 +406,8 @@
           "script": {
             "exec": [
               "const createRes = pm.response.json();\r",
-              "if (pm.response.code === 201 && createRes && createRes.data && createRes.data._id) {\r",
-              "    pm.environment.set(\"ReservationId\", createRes.data._id);\r",
-              "}\r",
+              "pm.environment.set(\"ReservationId\", createRes.data._id);\r",
+              "\r",
               "\r",
               "pm.test(\"Status code is 201\", function () {\r",
               "    pm.response.to.have.status(201);\r",
@@ -444,7 +443,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T11:00:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}",
+          "raw": "{\r\n    \"reservationDate\":\"{{DYNAMIC_DATE}}\",\r\n    \"tableCount\": 1\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -484,7 +483,7 @@
               "    pm.response.to.have.status(400);\r",
               "});\r",
               "\r",
-              "pm.execution.setNextRequest(\"User Create Reservation #2 Same Day\")"
+              "pm.execution.setNextRequest(\"User Create Reservation #2 - Test Reservation Limit\")"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -514,7 +513,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T00:30:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}"
+          "raw": "{\r\n    \"reservationDate\":\"2026-04-06T22:00:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}"
         },
         "url": {
           "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
@@ -579,7 +578,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T13:00:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}"
+          "raw": "{\r\n    \"reservationDate\":\"{{DYNAMIC_DATE}}\",\r\n    \"tableCount\": 1\r\n}"
         },
         "url": {
           "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
@@ -596,7 +595,7 @@
           "variable": [
             {
               "key": "restaurantId",
-              "value": "{{RestaurantId2}}"
+              "value": "{{RestaurantId1}}"
             }
           ]
         }
@@ -644,7 +643,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T16:00:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}"
+          "raw": "{\r\n    \"reservationDate\":\"{{DYNAMIC_DATE}}\",\r\n    \"tableCount\": 1\r\n}"
         },
         "url": {
           "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
@@ -709,7 +708,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-24T19:00:00.000+07:00\",\r\n    \"tableCount\": 1\r\n}"
+          "raw": "{\r\n    \"reservationDate\":\"{{DYNAMIC_DATE}}\",\r\n    \"tableCount\": 1\r\n}"
         },
         "url": {
           "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
@@ -744,7 +743,7 @@
               "    pm.response.to.have.status(400);\r",
               "});\r",
               "\r",
-              "pm.execution.setNextRequest(\"User Get Own Reservations (Cleanup Check)\");"
+              "pm.execution.setNextRequest(\"User View own Reservations\");"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -774,7 +773,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-25T11:30:00.000+07:00\",\r\n    \"tableCount\": 100\r\n}"
+          "raw": "{\r\n    \"reservationDate\":\"{{DYNAMIC_DATE}}\",\r\n    \"tableCount\": 100\r\n}"
         },
         "url": {
           "raw": "{{URL}}/api/v1/restaurants/:restaurantId/reservations",
@@ -799,189 +798,6 @@
       "response": []
     },
     {
-      "name": "User Get Own Reservations (Cleanup Check)",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "// GET own reservations to check how many extra reservations exist\r",
-              "// Then capture ExtraReservationId2 and ExtraReservationId3 for cleanup\r",
-              "// Set flags HasExtra2 and HasExtra3 to control conditional flow\r",
-              "\r",
-              "pm.test(\"Status code is 200\", function () {\r",
-              "    pm.response.to.have.status(200);\r",
-              "});\r",
-              "\r",
-              "const reservations = pm.response.json();\r",
-              "let hasExtra2 = false;\r",
-              "let hasExtra3 = false;\r",
-              "\r",
-              "if (reservations && Array.isArray(reservations.data) && reservations.data.length > 1) {\r",
-              "    pm.environment.set(\"ExtraReservationId2\", reservations.data[1]._id);\r",
-              "    hasExtra2 = true;\r",
-              "}\r",
-              "if (reservations && Array.isArray(reservations.data) && reservations.data.length > 2) {\r",
-              "    pm.environment.set(\"ExtraReservationId3\", reservations.data[2]._id);\r",
-              "    hasExtra3 = true;\r",
-              "}\r",
-              "\r",
-              "pm.environment.set(\"HasExtra2\", hasExtra2);\r",
-              "pm.environment.set(\"HasExtra3\", hasExtra3);\r",
-              "\r",
-              "if (hasExtra2) {\r",
-              "    pm.execution.setNextRequest(\"User Delete Extra Reservation #2\");\r",
-              "} else {\r",
-              "    pm.execution.setNextRequest(\"User View own Reservations\");\r",
-              "}\r",
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{TOKEN}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{URL}}/api/v1/reservations",
-          "host": [
-            "{{URL}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "reservations"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "User Delete Extra Reservation #2",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status code is 200\", function () {\r",
-              "    pm.response.to.have.status(200);\r",
-              "});\r",
-              "\r",
-              "const hasExtra3 = pm.environment.get(\"HasExtra3\") === \"true\" || pm.environment.get(\"HasExtra3\") === true;\r",
-              "\r",
-              "if (hasExtra3) {\r",
-              "    pm.execution.setNextRequest(\"User Delete Extra Reservation #3\");\r",
-              "} else {\r",
-              "    pm.execution.setNextRequest(\"User View own Reservations\");\r",
-              "}"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{TOKEN}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{URL}}/api/v1/reservations/:ReservationId",
-          "host": [
-            "{{URL}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "reservations",
-            ":ReservationId"
-          ],
-          "variable": [
-            {
-              "key": "ReservationId",
-              "value": "{{ExtraReservationId2}}"
-            }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "User Delete Extra Reservation #3",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status code is 200\", function () {\r",
-              "    pm.response.to.have.status(200);\r",
-              "});\r",
-              "\r",
-              "pm.execution.setNextRequest(\"User View own Reservations\");"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{TOKEN}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{URL}}/api/v1/reservations/:ReservationId",
-          "host": [
-            "{{URL}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "reservations",
-            ":ReservationId"
-          ],
-          "variable": [
-            {
-              "key": "ReservationId",
-              "value": "{{ExtraReservationId3}}"
-            }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
       "name": "User View own Reservations",
       "event": [
         {
@@ -993,13 +809,10 @@
               "});\r",
               "\r",
               "const ownReservations = pm.response.json();\r",
-              "if (ownReservations && Array.isArray(ownReservations.data) && ownReservations.data.length > 0) {\r",
-              "    pm.environment.set(\"ReservationId\", ownReservations.data[0]._id);\r",
-              "}\r",
+              "pm.environment.set(\"ReservationId\", ownReservations.data[0]._id);\r",
+              "pm.environment.set(\"UserReservationForAdmin\", ownReservations.data[1]._id);\r",
+              "pm.environment.set(\"ExtraReservationId\", ownReservations.data[2]._id);\r",
               "\r",
-              "pm.test(\"ReservationId exists for update/delete\", function () {\r",
-              "    pm.expect(pm.environment.get(\"ReservationId\")).to.exist;\r",
-              "});\r",
               "\r",
               "pm.execution.setNextRequest(\"User Update Reservation\");"
             ],
@@ -1112,8 +925,8 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 200 or 404\", function () {\r",
-              "    pm.expect([200, 404]).to.include(pm.response.code);\r",
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
               "});\r",
               "\r",
               "pm.execution.setNextRequest(\"User logout\");"
@@ -1218,7 +1031,7 @@
               "    pm.response.to.have.status(200);\r",
               "});\r",
               "\r",
-              "pm.execution.setNextRequest(\"Admin Create Reservation for Test\");\r",
+              "pm.execution.setNextRequest(\"Admin View All Reservations\");\r",
               ""
             ],
             "type": "text/javascript",
@@ -1273,9 +1086,8 @@
           "script": {
             "exec": [
               "const createRes = pm.response.json();\r",
-              "if (pm.response.code === 201 && createRes && createRes.data && createRes.data._id) {\r",
-              "    pm.environment.set(\"AdminReservationId\", createRes.data._id);\r",
-              "}\r",
+              "pm.environment.set(\"AdminReservationId\", createRes.data._id);\r",
+              "\r",
               "\r",
               "pm.test(\"Status code is 201\", function () {\r",
               "    pm.response.to.have.status(201);\r",
@@ -1311,7 +1123,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"reservationDate\":\"2026-03-26T12:00:00.000+07:00\",\r\n    \"tableCount\": 2\r\n}",
+          "raw": "{\r\n    \"reservationDate\":\"{{DYNAMIC_DATE}}\",\r\n    \"tableCount\": 2\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -1353,14 +1165,7 @@
               "\r",
               "const adminReservations = pm.response.json();\r",
               "\r",
-              "// AdminReservationId already set by \"Admin Create Reservation for Test\"\r",
-              "// This step is just to view all reservations (Step 10 requirement)\r",
-              "\r",
-              "pm.test(\"ReservationId exists for admin update/delete\", function () {\r",
-              "    pm.expect(pm.environment.get(\"AdminReservationId\")).to.exist;\r",
-              "});\r",
-              "\r",
-              "pm.execution.setNextRequest(\"Admin updated reservation\");\r",
+              "pm.execution.setNextRequest(\"Admin Edit User's Reservation\");\r",
               ""
             ],
             "type": "text/javascript",
@@ -1397,7 +1202,7 @@
       "response": []
     },
     {
-      "name": "Admin updated reservation",
+      "name": "Admin Edit User's Reservation",
       "event": [
         {
           "listen": "test",
@@ -1407,7 +1212,7 @@
               "    pm.response.to.have.status(200);\r",
               "});\r",
               "\r",
-              "pm.execution.setNextRequest(\"Admin Delete Reservation\");"
+              "pm.execution.setNextRequest(\"Admin Delete User's Reservation\");"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -1451,7 +1256,7 @@
           "variable": [
             {
               "key": "ReservationId",
-              "value": "{{AdminReservationId}}"
+              "value": "{{UserReservationForAdmin}}"
             }
           ]
         }
@@ -1459,7 +1264,60 @@
       "response": []
     },
     {
-      "name": "Admin Delete Reservation",
+      "name": "Admin Delete User's Reservation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.execution.setNextRequest(\"Admin Cleanup Remaining Reservation\");"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{URL}}/api/v1/reservations/:ReservationId",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "reservations",
+            ":ReservationId"
+          ],
+          "variable": [
+            {
+              "key": "ReservationId",
+              "value": "{{UserReservationForAdmin}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Admin Cleanup Remaining Reservation",
       "event": [
         {
           "listen": "test",
@@ -1504,7 +1362,7 @@
           "variable": [
             {
               "key": "ReservationId",
-              "value": "{{AdminReservationId}}"
+              "value": "{{ExtraReservationId}}"
             }
           ]
         }
@@ -1523,7 +1381,25 @@
         "packages": {},
         "requests": {},
         "exec": [
-          ""
+          "// Set DYNAMIC_DATE once per iteration (when 'User Register' request runs)",
+          "// Each iteration gets a unique weekday far in the future",
+          "if (pm.info.requestName === 'User Register') {",
+          "    let iter = parseInt(pm.collectionVariables.get('ITER_COUNT') || '0');",
+          "    iter++;",
+          "    pm.collectionVariables.set('ITER_COUNT', iter);",
+          "",
+          "    // Base: Monday 2027-06-07 (far future, no existing reservations)",
+          "    const baseDate = new Date('2027-06-07');",
+          "    let offset = iter - 1;",
+          "    // Map offset to weekdays only: skip Sat/Sun",
+          "    let totalDays = Math.floor(offset / 5) * 7 + (offset % 5);",
+          "    const target = new Date(baseDate.getTime() + totalDays * 86400000);",
+          "",
+          "    const y = target.getFullYear();",
+          "    const m = String(target.getMonth() + 1).padStart(2, '0');",
+          "    const d = String(target.getDate()).padStart(2, '0');",
+          "    pm.collectionVariables.set('DYNAMIC_DATE', `${y}-${m}-${d}T11:00:00.000+07:00`);",
+          "}"
         ]
       }
     },
@@ -1559,6 +1435,14 @@
     {
       "key": "UserPassword",
       "value": "haOUv52BSalnRUV"
+    },
+    {
+      "key": "ITER_COUNT",
+      "value": ""
+    },
+    {
+      "key": "DYNAMIC_DATE",
+      "value": ""
     }
   ]
 }
