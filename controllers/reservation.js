@@ -22,7 +22,7 @@ const checkTableAvailability = async (
     reservationDate: { $gt: timeLowerBound, $lt: timeUpperBound },
   };
 
-  if (excludeId) {
+  if (excludeId) {      // exclude current reservation from the check when updating
     query._id = { $ne: excludeId };
   }
 
@@ -92,7 +92,7 @@ const checkDailyReservationLimit = async (userId, dateString, userRole) => {
     reservationDate: { $gte: startOfDay, $lte: endOfDay },
   });
   
-  const isLimitExceeded = sameDateReservations.length >= 3 && userRole !== "admin";
+  const isLimitExceeded = sameDateReservations.length >= 3 && userRole !== "admin"; // check limit only for non-admin users
   
   return {
     isLimitExceeded,
@@ -105,28 +105,24 @@ const checkDailyReservationLimit = async (userId, dateString, userRole) => {
 const checkOpeningHours = (restaurant, dateString) => {
   const requestedDate = new Date(dateString);
 
-  // 1. บังคับอ่าน "วัน" ตามโซนเวลาประเทศไทยเสมอ
-  const dayOfWeek = new Intl.DateTimeFormat("en-US", {
+  const dayOfWeek = new Intl.DateTimeFormat("en-US", {  // get day of week
     timeZone: "Asia/Bangkok",
     weekday: "long",
   }).format(requestedDate);
 
-  // 2. บังคับอ่าน "เวลา HH:mm" ตามโซนเวลาประเทศไทยเสมอ
   const hourMinute = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Bangkok",
     hour: "2-digit",
     minute: "2-digit",
-    hourCycle: "h23", // ใช้ h23 เพื่อให้รูปแบบเวลาเป็น 00-23 เสมอ (ป้องกันบั๊ก 24:00)
+    hourCycle: "h23", // h23 format to get 24-hour time without AM/PM 0 - 23
   }).format(requestedDate);
 
-  const openingInfo = restaurant.openingHours.find((d) => d.day === dayOfWeek); // loop opening day
-
-  if (!openingInfo || openingInfo.closed) {
+  const openingInfo = restaurant.openingHours.find((d) => d.day === dayOfWeek); // loop opening day = requested day
+  if (!openingInfo || openingInfo.closed) { // if no opening info (closed) or explicitly closed
     return { isOpen: false, message: `Closed on ${dayOfWeek}` };
   }
 
-  // เปรียบเทียบ string "HH:mm"
-  if (hourMinute < openingInfo.open || hourMinute >= openingInfo.close) {
+  if (hourMinute < openingInfo.open || hourMinute >= openingInfo.close) { // if time i not within opening hours
     return {
       isOpen: false,
       message: `Open from ${openingInfo.open} to ${openingInfo.close}`,
@@ -257,7 +253,6 @@ exports.addReservation = async (req, res, next) => {
       req.body.reservationDate,
       req.body.tableCount,
     );
-
     if (!capacity.isAvailable) {      // not enough tables available at the requested time
       return res.status(400).json({
         success: false,
@@ -284,7 +279,7 @@ exports.addReservation = async (req, res, next) => {
 // @access  Private
 exports.updateReservation = async (req, res, next) => {
   try {
-    let reservation = await Reservation.findById(req.params.id);
+    let reservation = await Reservation.findById(req.params.id);  // find reservation by id
 
     if (!reservation) { // reservation not found
       return res
@@ -294,13 +289,13 @@ exports.updateReservation = async (req, res, next) => {
 
     // Authorization check
     const authCheck = checkAuthorization(reservation, req.user.id, req.user.role);
-    if (!authCheck.isAuthorized) {
+    if (!authCheck.isAuthorized) {    // not owner or admin
       return res
         .status(403)
         .json({ success: false, message: "Not authorized to update" });
     }
 
-    // Capacity & Opening Hours Check for Update
+    // check fields to update 
     if (req.body.reservationDate || req.body.tableCount) {
       const newDate = req.body.reservationDate || reservation.reservationDate;
       const newTableCount = req.body.tableCount || reservation.tableCount;
@@ -313,9 +308,8 @@ exports.updateReservation = async (req, res, next) => {
         });
       }
 
-      if (req.body.reservationDate) {
-        // Check if new date is in the past (GMT+7)
-        const pastCheck = checkPastDate(newDate);
+      if (req.body.reservationDate) {       // reservation date update
+        const pastCheck = checkPastDate(newDate); // check if newdate is past
         if (pastCheck.isPast) {
           return res.status(400).json({
             success: false,
@@ -323,21 +317,20 @@ exports.updateReservation = async (req, res, next) => {
           });
         }
 
-        // Check 3-reservations-per-day limit for the new date
+        // Check reservation limit for new date
         const dailyLimit = await checkDailyReservationLimit(
           req.user.id,
           newDate,
           req.user.role
         );
-        
-        if (dailyLimit.isLimitExceeded) {
+        if (dailyLimit.isLimitExceeded) {     // if newdate limit exceeded 
           return res.status(400).json({
             success: false,
             message: dailyLimit.message,
           });
         }
 
-        const storeStatus = checkOpeningHours(restaurant, newDate);
+        const storeStatus = checkOpeningHours(restaurant, newDate);   // check newdate opening hours
         if (!storeStatus.isOpen) {
           return res
             .status(400)
@@ -345,13 +338,12 @@ exports.updateReservation = async (req, res, next) => {
         }
       }
 
-      const capacity = await checkTableAvailability(
+      const capacity = await checkTableAvailability(    // check newdate table availability
         reservation.restaurant,
         newDate,
         newTableCount,
         req.params.id,
-      );
-
+      )
       if (!capacity.isAvailable) {
         return res.status(400).json({
           success: false,
@@ -359,7 +351,7 @@ exports.updateReservation = async (req, res, next) => {
         });
       }
 
-      if (req.body.reservationDate) {
+      if (req.body.reservationDate) {     // if updated reservation date, also update endTime
         req.body.endTime = new Date(
           new Date(newDate).getTime() + MEAL_DURATION,
         );

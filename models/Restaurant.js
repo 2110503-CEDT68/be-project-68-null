@@ -56,10 +56,9 @@ const RestaurantSchema = new mongoose.Schema(
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  },
+  },    
 );
 
-// (Optional) สร้าง Virtual Field เพื่อดึงข้อมูลการจองของร้านนี้มาแสดงได้ง่ายๆ
 RestaurantSchema.virtual("reservations", {
   ref: "Reservation",
   localField: "_id",
