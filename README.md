@@ -1,14 +1,14 @@
-# Restaurant Reservations API
+# Restaurant Reservations API ฿฿
 
 A Node.js backend for managing restaurant reservations with user authentication.
 
 ## Quick Start
 
-\\\sh
+```sh
 npm install
 cp config/config.example.env config/config.env  # Configure environment variables
 npm run dev  # Start development server
-\\\
+```
 
 ## Features
 
@@ -20,24 +20,41 @@ npm run dev  # Start development server
 
 ## Project Structure
 
-\\\
+```
 controllers/     # Route handlers
 models/          # Database schemas (User, Restaurant, Reservation, Menu)
 routes/          # API endpoints
 middleware/      # Auth middleware
 config/          # Database & environment config
 swagger/         # API documentation
-\\\
+```
 
 ## API Quick Reference
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | \/auth/register\ | Create new user |
-| POST | \/auth/login\ | User login |
-| GET | \/restaurants\ | List all restaurants |
-| POST | \/reservations\ | Create reservation |
-| GET | \/menu\ | View restaurant menus |
+| POST | /auth/register | Create new user |
+| POST | /auth/login | User login |
+| GET | /restaurants | List all restaurants |
+| POST | /reservations | Create reservation |
+| GET | /menu | View restaurant menus |
+
+## Tech Stack
+
+- Node.js + Express
+- MongoDB
+- JWT Authentication
+- RESTful API
+
+---
+
+## Contributors
+
+| Name | Contact |
+|------|---------|
+| Tanakrit Onjinda | 6833104021 |
+| Suphachok Chosanthia | 6833258021 |
+| Theanrawich Thungpromsri | 6833127521 |
 
 ---
 
