@@ -40,6 +40,67 @@ const checkTableAvailability = async (
   };
 };
 
+// Helper: Get Current Bangkok Time
+const getBangkokTime = () => {
+  return new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+  );
+};
+
+// Helper: Check if Date is in the Past
+const checkPastDate = (dateString) => {
+  const requestedDate = new Date(dateString);
+  const nowInBangkok = getBangkokTime();
+  
+  return {
+    isPast: requestedDate < nowInBangkok,
+    message: "Cannot reserve in the past",
+  };
+};
+
+// Helper: Check Authorization
+const checkAuthorization = (reservation, userId, userRole) => {
+  if (
+    reservation.user.toString() !== userId &&
+    userRole !== "admin"
+  ) {
+    return {
+      isAuthorized: false,
+      message: "Not authorized",
+    };
+  }
+  return { isAuthorized: true };
+};
+
+// Helper: Check Daily Reservation Limit
+const checkDailyReservationLimit = async (userId, dateString, userRole) => {
+  const requestedDate = new Date(dateString);
+  
+  const bangkokDateStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(requestedDate);
+
+  const [year, month, day] = bangkokDateStr.split("-");
+  const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+  const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+  
+  const sameDateReservations = await Reservation.find({
+    user: userId,
+    reservationDate: { $gte: startOfDay, $lte: endOfDay },
+  });
+  
+  const isLimitExceeded = sameDateReservations.length >= 3 && userRole !== "admin";
+  
+  return {
+    isLimitExceeded,
+    count: sameDateReservations.length,
+    message: isLimitExceeded ? `User ${userId} has already created 3 reservations on this date` : null,
+  };
+};
+
 // Helper: Check Opening Hours
 const checkOpeningHours = (restaurant, dateString) => {
   const requestedDate = new Date(dateString);
@@ -76,31 +137,31 @@ const checkOpeningHours = (restaurant, dateString) => {
 };
 
 // @desc    Get all reservations
-// @route   GET /api/v1/reservations
+// @route   GET /api/v1/reservations or GET /api/v1/restaurants/:restaurantId/reservations
 // @access  Private
 exports.getReservations = async (req, res, next) => {
   try {
     let query;
 
-    // Admin sees all, User sees only their own
+    // Admin sees all, only their own
     if (req.user.role !== "admin") {
-      if (req.params.restaurantId) {
+      if (req.params.restaurantId) {    // if restaurantId param exists, filter by restaurant and user
         query = Reservation.find({
           user: req.user.id,
           restaurant: req.params.restaurantId,
         }).populate({ path: "restaurant", select: "name address tel" });
-      } else {
+      } else {        // show all resevations of the user
         query = Reservation.find({ user: req.user.id }).populate({
           path: "restaurant",
           select: "name address tel",
         });
       }
-    } else {
-      if (req.params.restaurantId) {
+    } else {        // if admin
+      if (req.params.restaurantId) {      // show all resevations of the restaurant by restaurantId param
         query = Reservation.find({
           restaurant: req.params.restaurantId,
         }).populate({ path: "restaurant", select: "name address tel" });
-      } else {
+      } else {        // 
         query = Reservation.find().populate({
           path: "restaurant",
           select: "name address tel",
@@ -108,7 +169,7 @@ exports.getReservations = async (req, res, next) => {
       }
     }
 
-    const reservations = await query;
+    const reservations = await query;       // execute query and get reservations
     res.status(200).json({
       success: true,
       count: reservations.length,
@@ -130,7 +191,7 @@ exports.getReservation = async (req, res, next) => {
       select: "name address tel",
     });
 
-    if (!reservation) {
+    if (!reservation) {     // reservation not found
       return res
         .status(404)
         .json({ success: false, message: "Reservation not found" });
@@ -147,53 +208,38 @@ exports.getReservation = async (req, res, next) => {
 // @access  Private
 exports.addReservation = async (req, res, next) => {
   try {
-    req.body.restaurant = req.params.restaurantId;
-    req.body.user = req.user.id;
+    req.body.restaurant = req.params.restaurantId; // set restaurant from URL param
+    req.body.user = req.user.id;  // set user from authenticated user
 
     // 1. Check restaurant existence
     const restaurant = await Restaurant.findById(req.params.restaurantId);
-    if (!restaurant) {
+    if (!restaurant) {  // restaurant not found
       return res
         .status(404)
         .json({ success: false, message: "Restaurant not found" });
     }
 
-    const requestedDate = new Date(req.body.reservationDate);
-
     // 2. Check if reservation date is in the past (GMT+7 timezone)
-    const nowInBangkok = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
-    );
-    if (requestedDate < nowInBangkok) {
+    const requestedDate = new Date(req.body.reservationDate);
+    const pastCheck = checkPastDate(req.body.reservationDate);
+    if (pastCheck.isPast) {
       return res.status(400).json({
         success: false,
-        message: "Cannot reserve in the past",
+        message: pastCheck.message,
       });
     }
 
-    // 3. Check 3-reservations-per-day limit
-    // Use Bangkok timezone for same-day calculation
-    const bangkokDateStr = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Bangkok",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(requestedDate);
-
-    // Parse as UTC midnight to avoid timezone shifts
-    const [year, month, day] = bangkokDateStr.split("-");
-    const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-    const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
-
-    const sameDateReservations = await Reservation.find({
-      user: req.user.id,
-      reservationDate: { $gte: startOfDay, $lte: endOfDay },
-    });
-
-    if (sameDateReservations.length >= 3 && req.user.role !== "admin") {
+    // 3. Check 3-reservations-per-day limit (GMT+7 timezone)
+    const dailyLimit = await checkDailyReservationLimit(
+      req.user.id,
+      req.body.reservationDate,
+      req.user.role
+    );
+    
+    if (dailyLimit.isLimitExceeded) {
       return res.status(400).json({
         success: false,
-        message: `User ${req.user.id} has already created 3 reservations on this date`,
+        message: dailyLimit.message,
       });
     }
 
@@ -212,7 +258,7 @@ exports.addReservation = async (req, res, next) => {
       req.body.tableCount,
     );
 
-    if (!capacity.isAvailable) {
+    if (!capacity.isAvailable) {      // not enough tables available at the requested time
       return res.status(400).json({
         success: false,
         message: `Not enough tables. Only ${capacity.availableCount} left.`,
@@ -240,17 +286,15 @@ exports.updateReservation = async (req, res, next) => {
   try {
     let reservation = await Reservation.findById(req.params.id);
 
-    if (!reservation) {
+    if (!reservation) { // reservation not found
       return res
         .status(404)
         .json({ success: false, message: "Reservation not found" });
     }
 
-    // Authorization
-    if (
-      reservation.user.toString() !== req.user.id &&
-      req.user.role !== "admin"
-    ) {
+    // Authorization check
+    const authCheck = checkAuthorization(reservation, req.user.id, req.user.role);
+    if (!authCheck.isAuthorized) {
       return res
         .status(403)
         .json({ success: false, message: "Not authorized to update" });
@@ -271,16 +315,27 @@ exports.updateReservation = async (req, res, next) => {
 
       if (req.body.reservationDate) {
         // Check if new date is in the past (GMT+7)
-        const nowInBangkok = new Date(
-          new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
-        );
-        if (new Date(newDate) < nowInBangkok) {
+        const pastCheck = checkPastDate(newDate);
+        if (pastCheck.isPast) {
           return res.status(400).json({
             success: false,
             message: "Cannot update to a past date",
           });
         }
 
+        // Check 3-reservations-per-day limit for the new date
+        const dailyLimit = await checkDailyReservationLimit(
+          req.user.id,
+          newDate,
+          req.user.role
+        );
+        
+        if (dailyLimit.isLimitExceeded) {
+          return res.status(400).json({
+            success: false,
+            message: dailyLimit.message,
+          });
+        }
 
         const storeStatus = checkOpeningHours(restaurant, newDate);
         if (!storeStatus.isOpen) {
@@ -339,11 +394,9 @@ exports.deleteReservation = async (req, res, next) => {
         .json({ success: false, message: "Reservation not found" });
     }
 
-    // Authorization
-    if (
-      reservation.user.toString() !== req.user.id &&
-      req.user.role !== "admin"
-    ) {
+    // Authorization check
+    const authCheck = checkAuthorization(reservation, req.user.id, req.user.role);
+    if (!authCheck.isAuthorized) {
       return res
         .status(403)
         .json({ success: false, message: "Not authorized to delete" });

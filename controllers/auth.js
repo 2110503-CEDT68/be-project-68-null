@@ -5,9 +5,9 @@ const User = require("../models/User.js");
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
-    const { name, tel, email, password, role } = req.body;
+    const { name, tel, email, password, role } = req.body; // get data from request body
 
-    const user = await User.create({
+    const user = await User.create({    // create user in database
       name,
       tel,
       email,
@@ -15,13 +15,13 @@ exports.register = async (req, res, next) => {
       role,
     });
 
-    // เปลี่ยนเป็น 201 Created
+    // 201 Created
     sendTokenResponse(user, 201, res);
-  } catch (err) {
+  } catch (err) {     // log database error
     console.error(err.stack);
     res.status(400).json({
       success: false,
-      msg: err.message, // หรือจะเปลี่ยนเป็น "Cannot register user" เพื่อไม่ให้เผยข้อมูล DB มากไปก็ได้ครับ
+      msg: err.message, 
     });
   }
 };
@@ -31,7 +31,7 @@ exports.register = async (req, res, next) => {
 // @access  Public
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body; // get email and password from request body
 
     // Validate email & password
     if (!email || !password) {
@@ -44,7 +44,7 @@ exports.login = async (req, res, next) => {
     // check for user
     const user = await User.findOne({ email }).select("+password");
 
-    if (!user) {
+    if (!user) {    // if user not found return response with 401 Unauthorized
       return res
         .status(401)
         .json({ success: false, msg: "Invalid credentials" });
@@ -53,8 +53,7 @@ exports.login = async (req, res, next) => {
     // Check if password matches
     const isMatch = await user.matchPassword(password);
 
-    if (!isMatch) {
-      // เปลี่ยนเป็น 401 Unauthorized
+    if (!isMatch) {   // if password does not match return response with 401 Unauthorized
       return res
         .status(401)
         .json({ success: false, msg: "Invalid credentials" });
@@ -69,16 +68,16 @@ exports.login = async (req, res, next) => {
 
 // Helper Function
 const sendTokenResponse = (user, statusCode, res) => {
-  const token = user.getSignedJwtToken();
+  const token = user.getSignedJwtToken();     // create JWT token using method in User model
 
   // แปลง process.env เป็น Base-10 Integer ป้องกันบั๊ก Type String
   const expireDays = parseInt(process.env.JWT_COOKIE_EXPIRE, 10) || 30;
 
-  const options = {
+  const options = {         // set cookie options expire time and httpOnly
     expires: new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
   };
-
+  // on production set cookie only on HTTPS
   if (process.env.NODE_ENV === "production") {
     options.secure = true;
   }
@@ -97,11 +96,11 @@ exports.getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
 
-    // กันเหนียว กรณี token ผ่าน แต่มองไม่เห็น user ใน DB แล้ว (เช่น โดนลบไอดี)
+    // check token unexpired but user not found in database
     if (!user) {
       return res.status(404).json({ success: false, msg: "User not found" });
     }
-
+    
     res.status(200).json({
       success: true,
       data: user,
