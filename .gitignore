@@ -3,5 +3,7 @@ config/config.env
 
 # ignore node modules
 /node_modules
+
+# ignore 
 /out
 /ignore
