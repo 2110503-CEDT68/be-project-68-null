@@ -26,7 +26,7 @@ Controller --> guest: response (201/200 + token)
 user -> Controller: req.get("/api/v1/auth/logout")
 Controller --> user: response (200 OK + clear cookie)
 
-== Restaurant Flows (GET all, POST create) ==
+== Restaurant Flows (GET all, POST create, PUT update, DELETE) ==
 guest -> Server: req.get("/api/v1/restaurants")
 Server -> Router: app.use("/restaurants", restaurantRoutes)
 Router -> Controller: getRestaurants(req, res)
@@ -44,6 +44,15 @@ Model -> Mongo: insert restaurant
 Mongo --> Model: restaurant
 Model --> Controller: restaurant
 Controller --> admin: response (201 Created)
+
+admin -> Server: req.put/delete("/api/v1/restaurants/{id}")
+Server -> Router: app.use("/restaurants/:id", restaurantRoutes)
+Router -> Controller: updateRestaurant(req, res) /\ndeleteRestaurant(req, res)
+Controller -> Model: findByIdAndUpdate() /\nfindById() + deleteMany() + deleteOne()
+Model -> Mongo: update/delete restaurant\n(+ cascade delete reservations)
+Mongo --> Model: result
+Model --> Controller: restaurant or success
+Controller --> admin: response (200 OK)
 
 == Reservation Flows (POST create, GET/PUT/DELETE) ==
 user -> Server: req.post("/api/v1/restaurants/{id}/reservations")

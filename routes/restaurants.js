@@ -19,13 +19,13 @@ router.use("/:restaurantId/menus", menuRouter);
 
 router
   .route("/")
-  .get(getRestaurants)
-  .post(protect, authorize("admin"), createRestaurant);
+  .get(getRestaurants)    // everyone can view the list of restaurants
+  .post(protect, authorize("admin"), createRestaurant); // only admin can create a restaurant
 
 router
   .route("/:id")
-  .get(getRestaurant)
-  .put(protect, authorize("admin"), updateRestaurant)
-  .delete(protect, authorize("admin"), deleteRestaurant);
+  .get(getRestaurant)  // everyone can view a specific restaurant
+  .put(protect, authorize("admin"), updateRestaurant) // only admin can update a restaurant
+  .delete(protect, authorize("admin"), deleteRestaurant); // only admin can delete a restaurant
 
 module.exports = router;

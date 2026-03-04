@@ -1,4 +1,4 @@
-# Restaurant Reservations API ฿฿
+# Restaurant Reservations API
 
 A Node.js backend for managing restaurant reservations with user authentication.
 
@@ -39,18 +39,11 @@ swagger/         # API documentation
 | POST | /reservations | Create reservation |
 | GET | /menu | View restaurant menus |
 
-## Tech Stack
-
-- Node.js + Express
-- MongoDB
-- JWT Authentication
-- RESTful API
-
 ---
 
 ## Contributors
 
-| Name | Contact |
+| Name | ID |
 |------|---------|
 | Tanakrit Onjinda | 6833104021 |
 | Suphachok Chosanthia | 6833258021 |
