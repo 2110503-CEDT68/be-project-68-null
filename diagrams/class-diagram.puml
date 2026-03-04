@@ -1,7 +1,7 @@
 @startuml
 left to right direction
 package "Restaurant Reservation System"{
-    class "<<Application>>\nVacQService" as VacQService{}
+    class "<<Application>>\nRestaurantReservation" as RestaurantReservation{}
 
     class "<<Resource>>\nAuth" as ResourceAuth{
         <<POST>> +register():User
@@ -20,7 +20,7 @@ package "Restaurant Reservation System"{
         -password
         -role
         -createdAt
-    }j
+    }
 
     class "<<Resource>>\nRestaurants" as ResourceRestaurants{
         <<GET>> +getRestaurants():Restaurant
@@ -63,15 +63,15 @@ package "Restaurant Reservation System"{
 
 }
 
-VacQService ..> ResourceAuth:"/auth\n<<Path>>"
+RestaurantReservation ..> ResourceAuth:"/auth\n<<Path>>"
 ResourceAuth ..> ResourceUser: "/{userId}\n<<Path>>"
 ResourceUser ..> RepresentationUser: "<<use>>"
 
-VacQService ..> ResourceRestaurants:"/restaurants\n<<Path>>"
+RestaurantReservation ..> ResourceRestaurants:"/restaurants\n<<Path>>"
 ResourceRestaurants ..> ResourceRestaurant: "/{restaurantId}\n<<Path>>"
 ResourceRestaurant ..> RepresentationRestaurant: "<<use>>"
 
-VacQService ..> ResourceReservations:"/reservations\n<<Path>>"
+RestaurantReservation ..> ResourceReservations:"/reservations\n<<Path>>"
 ResourceReservations ..> ResourceReservation: "/{reservationId}\n<<Path>>"
 ResourceReservation ..> RepresentationReservation: "<<use>>"
 
